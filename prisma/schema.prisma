@@ -1,0 +1,444 @@
+// Warehouse MS — Prisma schema.
+// Source of truth lives in docs/database.md. This file mirrors §3-§7 and
+// §10-§11. Postgres extensions, triggers (§8), and views (§9) live in
+// hand-written SQL migrations alongside Prisma's generated ones.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [citext, pgcrypto, pg_trgm]
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────
+
+enum MovementDirection {
+  in
+  out
+
+  @@map("movement_direction")
+}
+
+enum MovementKind {
+  operations
+  maintenance
+
+  @@map("movement_kind")
+}
+
+enum MovementCondition {
+  good
+  damaged
+  partial
+  rejected
+
+  @@map("movement_condition")
+}
+
+enum ProjectStatus {
+  active
+  on_hold
+  completed
+
+  @@map("project_status")
+}
+
+enum ItemStatus {
+  in_stock
+  low
+  critical
+  out
+
+  @@map("item_status")
+}
+
+enum AlertSeverity {
+  critical
+  low
+  watch
+
+  @@map("alert_severity")
+}
+
+enum UserStatus {
+  invited
+  active
+  suspended
+
+  @@map("user_status")
+}
+
+// ─── Reference / lookup tables ───────────────────────────────────────
+
+model Role {
+  id        BigInt   @id @default(autoincrement())
+  code      String   @unique
+  label     String
+  isAdmin   Boolean  @default(false) @map("is_admin")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  users User[]
+
+  @@map("roles")
+}
+
+model Department {
+  id        BigInt   @id @default(autoincrement())
+  code      String   @unique
+  label     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  users     User[]
+  movements StockMovement[]
+
+  @@map("departments")
+}
+
+model Region {
+  id        BigInt   @id @default(autoincrement())
+  code      String   @unique
+  label     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  projects Project[]
+  sites    Site[]
+
+  @@map("regions")
+}
+
+model Category {
+  id            BigInt   @id @default(autoincrement())
+  code          String   @unique
+  label         String
+  parentId      BigInt?  @map("parent_id")
+  isMaintenance Boolean  @default(false) @map("is_maintenance")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryParent")
+  items    Item[]
+
+  @@map("categories")
+}
+
+model Unit {
+  id        BigInt   @id @default(autoincrement())
+  code      String   @unique
+  label     String
+  symbol    String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  items         Item[]
+  movementItems StockMovementItem[]
+
+  @@map("units")
+}
+
+model StorageLocation {
+  id        BigInt   @id @default(autoincrement())
+  code      String   @unique
+  label     String
+  address   String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  defaultUsers User[]
+  movements    StockMovement[]
+
+  @@map("storage_locations")
+}
+
+model Site {
+  id        BigInt   @id @default(autoincrement())
+  code      String   @unique
+  label     String
+  regionId  BigInt?  @map("region_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  region    Region?         @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  movements StockMovement[]
+
+  @@map("sites")
+}
+
+model Supplier {
+  id          BigInt   @id @default(autoincrement())
+  name        String   @unique
+  contactName String?  @map("contact_name")
+  email       String?  @db.Citext
+  phone       String?
+  address     String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  items     Item[]
+  movements StockMovement[]
+
+  @@map("suppliers")
+}
+
+model Manufacturer {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+
+  items     Item[]
+  movements StockMovement[]
+
+  @@map("manufacturers")
+}
+
+// ─── Identity & access ───────────────────────────────────────────────
+
+model User {
+  id              BigInt     @id @default(autoincrement())
+  email           String     @unique @db.Citext
+  passwordHash    String     @map("password_hash")
+  fullName        String     @map("full_name")
+  phone           String?
+  avatarUrl       String?    @map("avatar_url")
+  bio             String?
+  roleId          BigInt     @map("role_id")
+  departmentId    BigInt?    @map("department_id")
+  defaultSiteId   BigInt?    @map("default_site_id")
+  status          UserStatus @default(active)
+  emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz
+  lastLoginAt     DateTime?  @map("last_login_at")     @db.Timestamptz
+  createdAt       DateTime   @default(now())           @map("created_at") @db.Timestamptz
+  updatedAt       DateTime   @updatedAt                @map("updated_at") @db.Timestamptz
+  deletedAt       DateTime?  @map("deleted_at")        @db.Timestamptz
+
+  role        Role             @relation(fields: [roleId], references: [id])
+  department  Department?      @relation(fields: [departmentId], references: [id])
+  defaultSite StorageLocation? @relation(fields: [defaultSiteId], references: [id])
+
+  sessions             UserSession[]
+  resetTokens          PasswordResetToken[]
+  managedProjects      Project[]            @relation("ProjectManager")
+  receivedMovements    StockMovement[]      @relation("ReceivedBy")
+  issuedMovements      StockMovement[]      @relation("IssuedTo")
+  authorisedMovements  StockMovement[]      @relation("AuthorisedBy")
+  technicianMovements  StockMovement[]      @relation("Technician")
+  createdMovements     StockMovement[]      @relation("MovementCreatedBy")
+  notificationPrefs    NotificationPreference[]
+  notifications        Notification[]
+  auditEntries         AuditLog[]
+
+  @@index([roleId],         map: "idx_users_role")
+  @@index([departmentId],   map: "idx_users_department")
+  @@map("users")
+}
+
+model UserSession {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    BigInt    @map("user_id")
+  userAgent String?   @map("user_agent")
+  ipAddress String?   @map("ip_address") @db.Inet
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
+  createdAt DateTime  @default(now())    @map("created_at") @db.Timestamptz
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model PasswordResetToken {
+  token       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      BigInt    @map("user_id")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz
+  consumedAt  DateTime? @map("consumed_at") @db.Timestamptz
+  createdAt   DateTime  @default(now())    @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+// ─── Projects ────────────────────────────────────────────────────────
+
+model Project {
+  id               BigInt        @id @default(autoincrement())
+  wbs              String        @unique
+  name             String
+  location         String
+  regionId         BigInt?       @map("region_id")
+  managerUserId    BigInt?       @map("manager_user_id")
+  status           ProjectStatus @default(active)
+  startDate        DateTime?     @map("start_date")          @db.Date
+  estimatedEndDate DateTime?     @map("estimated_end_date")  @db.Date
+  budget           Decimal?      @db.Decimal(14, 2)
+  description      String?
+  createdAt        DateTime      @default(now())             @map("created_at") @db.Timestamptz
+  updatedAt        DateTime      @updatedAt                  @map("updated_at") @db.Timestamptz
+  deletedAt        DateTime?     @map("deleted_at")          @db.Timestamptz
+
+  region    Region? @relation(fields: [regionId], references: [id])
+  manager   User?   @relation("ProjectManager", fields: [managerUserId], references: [id])
+  movements StockMovement[]
+
+  @@index([managerUserId], map: "idx_projects_manager")
+  @@index([regionId],      map: "idx_projects_region")
+  @@map("projects")
+}
+
+// ─── Items (inventory registry) ──────────────────────────────────────
+
+model Item {
+  id                 BigInt   @id @default(autoincrement())
+  rfq                String   @unique
+  name               String
+  categoryId         BigInt   @map("category_id")
+  unitId             BigInt   @map("unit_id")
+  defaultSupplierId  BigInt?  @map("default_supplier_id")
+  manufacturerId     BigInt?  @map("manufacturer_id")
+  isMaintenancePart  Boolean  @default(false) @map("is_maintenance_part")
+  currentStock       Decimal  @default(0)     @map("current_stock") @db.Decimal(14, 3)
+  reorderLevel       Decimal  @default(0)     @map("reorder_level") @db.Decimal(14, 3)
+  minStock           Decimal  @default(0)     @map("min_stock")     @db.Decimal(14, 3)
+  maxStock           Decimal  @default(0)     @map("max_stock")     @db.Decimal(14, 3)
+  description        String?
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt      @map("updated_at") @db.Timestamptz
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz
+
+  category        Category      @relation(fields: [categoryId], references: [id])
+  unit            Unit          @relation(fields: [unitId],     references: [id])
+  defaultSupplier Supplier?     @relation(fields: [defaultSupplierId], references: [id])
+  manufacturer    Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  movementItems   StockMovementItem[]
+
+  @@index([categoryId],        map: "idx_items_category")
+  @@index([defaultSupplierId], map: "idx_items_supplier")
+  @@map("items")
+}
+
+// ─── Stock movements (unified ledger) ────────────────────────────────
+
+model StockMovement {
+  id                  BigInt            @id @default(autoincrement())
+  refNo               String            @unique @map("ref_no")
+  direction           MovementDirection
+  kind                MovementKind
+  movementDate        DateTime          @map("movement_date") @db.Date
+  rfq                 String?
+  notes               String?
+
+  supplierId          BigInt?           @map("supplier_id")
+  receivedByUserId    BigInt?           @map("received_by_user_id")
+
+  projectId           BigInt?           @map("project_id")
+  departmentId        BigInt?           @map("department_id")
+  activity            String?
+  issuedToUserId      BigInt?           @map("issued_to_user_id")
+  authorisedByUserId  BigInt?           @map("authorised_by_user_id")
+
+  siteId              BigInt?           @map("site_id")
+  technicianUserId    BigInt?           @map("technician_user_id")
+  application         String?
+  manufacturerId      BigInt?           @map("manufacturer_id")
+  storageLocationId   BigInt?           @map("storage_location_id")
+
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime          @updatedAt      @map("updated_at") @db.Timestamptz
+  createdByUserId     BigInt?           @map("created_by_user_id")
+  deletedAt           DateTime?         @map("deleted_at") @db.Timestamptz
+
+  supplier        Supplier?        @relation(fields: [supplierId], references: [id])
+  receivedBy      User?            @relation("ReceivedBy",   fields: [receivedByUserId],   references: [id])
+  project         Project?         @relation(fields: [projectId], references: [id])
+  department      Department?      @relation(fields: [departmentId], references: [id])
+  issuedTo        User?            @relation("IssuedTo",     fields: [issuedToUserId],     references: [id])
+  authorisedBy    User?            @relation("AuthorisedBy", fields: [authorisedByUserId], references: [id])
+  site            Site?            @relation(fields: [siteId], references: [id])
+  technician      User?            @relation("Technician",   fields: [technicianUserId],   references: [id])
+  manufacturer    Manufacturer?    @relation(fields: [manufacturerId], references: [id])
+  storageLocation StorageLocation? @relation(fields: [storageLocationId], references: [id])
+  createdBy       User?            @relation("MovementCreatedBy", fields: [createdByUserId], references: [id])
+
+  items StockMovementItem[]
+
+  @@index([projectId],   map: "idx_movements_project")
+  @@index([supplierId],  map: "idx_movements_supplier")
+  @@index([siteId],      map: "idx_movements_site")
+  @@map("stock_movements")
+}
+
+model StockMovementItem {
+  id          BigInt            @id @default(autoincrement())
+  movementId  BigInt            @map("movement_id")
+  itemId      BigInt            @map("item_id")
+  qty         Decimal           @db.Decimal(14, 3)
+  unitId      BigInt            @map("unit_id")
+  unitCost    Decimal?          @map("unit_cost") @db.Decimal(14, 2)
+  condition   MovementCondition @default(good)
+  note        String?
+
+  movement StockMovement @relation(fields: [movementId], references: [id], onDelete: Cascade)
+  item     Item          @relation(fields: [itemId],     references: [id])
+  unit     Unit          @relation(fields: [unitId],     references: [id])
+
+  @@index([movementId], map: "idx_movement_items_movement")
+  @@index([itemId],     map: "idx_movement_items_item")
+  @@map("stock_movement_items")
+}
+
+// ─── Notifications & audit ───────────────────────────────────────────
+
+model NotificationPreference {
+  userId    BigInt   @map("user_id")
+  key       String
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, key])
+  @@map("notification_preferences")
+}
+
+model Notification {
+  id        BigInt    @id @default(autoincrement())
+  userId    BigInt    @map("user_id")
+  type      String
+  title     String
+  body      String?
+  payload   Json      @default("{}")
+  readAt    DateTime? @map("read_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt?  @map("user_id")
+  action    String
+  entity    String
+  entityId  BigInt?  @map("entity_id")
+  before    Json?
+  after     Json?
+  ipAddress String?  @map("ip_address") @db.Inet
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId, createdAt(sort: Desc)], map: "idx_audit_entity")
+  @@index([userId,           createdAt(sort: Desc)], map: "idx_audit_actor")
+  @@map("audit_log")
+}

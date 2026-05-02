@@ -24,3 +24,57 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Portal sidebar entrance animation ─────────────────────────────── */
+@keyframes sidebarIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Staggered nav-item fade-up entrance animation ─────────────────── */
+@keyframes navItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Page content fade-in animation ────────────────────────────────── */
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@theme inline {
+  /* Sidebar slide-in: 300ms ease-out, runs once */
+  --animate-sidebar-in: sidebarIn 0.3s ease-out both;
+  /* Nav item fade-up: 250ms ease-out, fillmode both (respects stagger delay) */
+  --animate-nav-item-in: navItemIn 0.25s ease-out both;
+  /* Page content fade-in */
+  --animate-page-in: pageIn 0.3s ease-out both;
+}
+
+/* Honour the user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-sidebar-in,
+  .animate-nav-item-in,
+  .animate-page-in {
+    animation: none;
+  }
+}
