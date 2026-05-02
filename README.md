@@ -2,7 +2,7 @@
 
 A warehouse management portal for tracking inventory, stock movements,
 projects, maintenance parts, and reorder alerts. Built with Next.js 16, React
-19, Tailwind 4, Prisma 7, and Auth.js v5.
+19, Tailwind 4, Prisma 7, Auth.js v5, and a thin typed service layer.
 
 ---
 
@@ -18,10 +18,26 @@ projects, maintenance parts, and reorder alerts. Built with Next.js 16, React
 | Driver      | `@prisma/adapter-pg`                                                    |
 | Auth        | Auth.js v5 (Credentials provider, JWT sessions, argon2id hashing)        |
 | Validation  | Zod                                                                     |
+| API client  | Typed service layer in `src/services/**` over a small `fetch` wrapper    |
+| Toasts      | sonner (mounted globally; surfaces every service error automatically)    |
 
 > **Heads up:** Next 16 renamed Middleware → **Proxy**. The auth gate lives in
 > `src/proxy.ts`, not `middleware.ts`. Prisma 7 also moved the connection URL
 > out of `schema.prisma` into `prisma.config.ts`.
+
+---
+
+## Documentation
+
+Three living docs in `docs/`:
+
+| File                                | What it covers                                            |
+| ----------------------------------- | --------------------------------------------------------- |
+| [`docs/database.md`](docs/database.md) | The PostgreSQL schema — tables, enums, triggers, views, indexes, seed data, ~20 named queries. Source of truth for the relational model. |
+| [`docs/api.md`](docs/api.md)           | Every Route Handler under `src/app/api/**` — methods, params, request/response shapes, errors, curl examples. |
+| [`docs/services.md`](docs/services.md) | The client service layer — `http.ts`, `toast.ts`, `useService` hook, every typed function under `src/services/**`, recipes for read pages and mutations. |
+
+If you're new to the codebase, read them in that order.
 
 ---
 
@@ -111,7 +127,9 @@ Open [http://localhost:3000](http://localhost:3000). Sign up at
 ```
 .
 ├── docs/
-│   └── database.md                       # Source of truth for the schema (read this!)
+│   ├── database.md                       # Source of truth for the schema
+│   ├── api.md                            # Every route handler in src/app/api/**
+│   └── services.md                       # The client service layer
 ├── prisma/
 │   ├── schema.prisma                     # Models + relations (no URL — see prisma.config.ts)
 │   ├── seed.ts                           # Seeds roles, departments, units, etc.
@@ -121,31 +139,48 @@ Open [http://localhost:3000](http://localhost:3000). Sign up at
 ├── prisma.config.ts                      # Prisma 7 datasource + migration config
 ├── src/
 │   ├── app/
+│   │   ├── layout.tsx                    # Root layout — mounts <Toaster />
 │   │   ├── auth/
 │   │   │   ├── login/page.tsx            # Credentials sign-in
 │   │   │   └── signup/page.tsx           # Calls /api/auth/register, then auto-signs-in
-│   │   ├── api/auth/
-│   │   │   ├── [...nextauth]/route.ts    # Auth.js handlers
-│   │   │   └── register/route.ts         # POST: zod-validated, argon2id-hashed
+│   │   ├── api/                          # Every route handler — see docs/api.md
+│   │   │   ├── auth/                     # NextAuth + register
+│   │   │   ├── users/me/                 # Profile + notification preferences
+│   │   │   ├── lookups/                  # Single bundle for dropdowns
+│   │   │   ├── items/                    # CRUD
+│   │   │   ├── projects/                 # CRUD + details panel
+│   │   │   ├── stock-movements/          # Unified ledger (in/out × ops/maintenance)
+│   │   │   ├── reorder-alerts/           # View-backed
+│   │   │   ├── dashboard/                # KPIs + 7-day bar chart
+│   │   │   └── reports/[slug]/           # 5 report slugs
 │   │   └── portal/                       # Protected by src/proxy.ts
-│   │       ├── page.tsx                  # Dashboard
-│   │       ├── inventory/                # Item registry
-│   │       ├── projects/                 # Projects + view-details + edit/delete
-│   │       ├── stock-in/                 # GRN ledger
-│   │       ├── stock-out/                # MRN ledger
-│   │       ├── maintenance/              # Unified maintenance ledger
-│   │       ├── reorder-alerts/
-│   │       ├── reports/                  # Cards open the report viewer modal
+│   │       ├── page.tsx                  # Dashboard → getDashboard()
+│   │       ├── inventory/                # → listItems / deleteItem
+│   │       ├── projects/                 # → listProjects / deleteProject / project-details
+│   │       ├── stock-in/                 # → listMovements({ kind:"operations", direction:"in" })
+│   │       ├── stock-out/                # → listMovements({ kind:"operations", direction:"out" })
+│   │       ├── maintenance/              # → listMovements({ kind:"maintenance" })
+│   │       ├── reorder-alerts/           # → getReorderAlerts
+│   │       ├── reports/                  # Cards open report-viewer.tsx → getReport(slug)
 │   │       └── settings/                 # Tabs: Profile / Notification preferences
 │   ├── components/
 │   │   ├── modals/                       # add/edit/delete dialogs, project-details, report-viewer, confirm-delete
 │   │   └── ui_components/                # Sidebar, primitives (PageHeader, Surface, StatusPill, ...)
 │   ├── lib/
 │   │   ├── prisma.ts                     # Prisma client singleton with @prisma/adapter-pg
-│   │   └── auth.ts                       # Auth.js config (Credentials + JWT + role/department in token)
+│   │   ├── auth.ts                       # Auth.js config (Credentials + JWT + role/department in token)
+│   │   ├── api.ts                        # Server-side route helpers (requireUser, serialize, withApi, ...)
+│   │   └── user.ts                       # getCurrentUser / getSessionUserOrRedirect (server)
+│   ├── services/                         # Client service layer — see docs/services.md
+│   │   ├── http.ts                       # fetch wrapper + ApiError + qs builder
+│   │   ├── toast.ts                      # sonner integration + failWithToast
+│   │   ├── use-service.ts                # client hook { data, loading, error, refetch }
+│   │   ├── auth.ts / users.ts / lookups.ts
+│   │   ├── items.ts / projects.ts / stock-movements.ts
+│   │   ├── reorder-alerts.ts / dashboard.ts / reports.ts
 │   ├── proxy.ts                          # Next 16 "Middleware" — gates /portal/**
-│   ├── types/                            # Shared TS types
-│   └── utils/sampleData.tsx              # Demo data still used by some pages
+│   ├── types/                            # Shared TS types (legacy demo + API shapes co-exist)
+│   └── utils/sampleData.tsx              # Demo data still imported by a few legacy paths
 ├── .env / .env.example
 ├── next.config.ts
 ├── tsconfig.json
@@ -176,6 +211,29 @@ The Prisma schema in `prisma/schema.prisma` mirrors §3-§7 and §10-§11 of tha
 document. §8 (triggers) and §9 (views) live in
 `prisma/migrations/20260430000002_triggers_views_constraints/migration.sql`.
 
+### API
+
+Every page reads through a Route Handler in `src/app/api/**`. The route
+files are thin wrappers over Prisma, with `withApi(...)` turning thrown
+`HttpError`s into JSON. Read [`docs/api.md`](docs/api.md) for the full
+endpoint list and request/response shapes.
+
+### Service layer
+
+Pages don't call `fetch`. They call typed functions like `listItems()` and
+`createMovement(...)` from `src/services/**`. The service layer:
+
+- Wraps every endpoint in a 5-line `try / catch` block.
+- Pops a sonner toast (title = friendly fallback, description = server
+  error) on failure.
+- Throws an `ApiError` so callers can branch on `err.status` for control
+  flow (e.g. redirect on 401).
+- Exposes a `useService(loader, deps)` hook for read pages, with race-safe
+  refetch.
+
+Read [`docs/services.md`](docs/services.md) for the recipes and a
+function-by-function reference.
+
 ### Stock movements (the unified ledger)
 
 Operations stock-in (GRN), operations stock-out (MRN), and maintenance
@@ -192,8 +250,9 @@ go in `stock_movement_items`.
 - `trg_movement_soft_delete` reverses the effect when a movement's
   `deleted_at` is set, and replays it if it's cleared.
 
-This means the **delete confirmation modals** in the UI Just Work — soft-delete
-a GRN/MRN and stock corrects itself.
+This means the **delete confirmation modals** in the UI Just Work —
+`deleteMovement(id)` from the service soft-deletes the row and stock
+corrects itself.
 
 ### Authentication
 
@@ -224,13 +283,17 @@ payload, argon2-hashes the password, defaults the new user to the
 - **`confirm-delete.tsx`** is generic: pass a `title`, `message`, `details`
   array, and `onConfirm`. Reused by projects, stock-in, stock-out, and
   maintenance.
-- **Tables** use `w-full min-w-max` inside a `overflow-x-auto` wrapper so
+- **Tables** use `w-full min-w-max` inside an `overflow-x-auto` wrapper so
   columns render at their natural width and the wrapper scrolls horizontally
   rather than squeezing.
 - **Primitives** (`PageHeader`, `Surface`, `StatusPill`, `MonoCell`,
   `FieldLabel`, `fieldClass`) live in
   `src/components/ui_components/portal/primitives.tsx`. Use them rather than
   re-rolling card / input styles per page.
+- **Toasts** appear bottom-right with a dark theme matching the portal.
+  Every service catch already triggers them via `failWithToast(err, …)` —
+  pages don't need to call `toast.error` themselves. Use `showSuccessToast`
+  after successful mutations.
 
 ---
 
@@ -253,15 +316,25 @@ payload, argon2-hashes the password, defaults the new user to the
 - `cookies()` is async — `await cookies()` before reading.
 - The Prisma client and `@node-rs/argon2` are already on Next's automatic
   `serverExternalPackages` list, so no manual config needed.
+- `tsconfig.target` is **ES2020** (bumped from ES2017 so `BigInt` literals
+  like `0n` compile).
 
 ### Adding a new entity
+
+The same flow appears at the bottom of `docs/services.md`. Briefly:
 
 1. Add the model to `prisma/schema.prisma`.
 2. `yarn db:migrate` (Prisma will prompt for a name and generate the SQL).
 3. If the entity needs triggers / views / partial indexes, add a hand-written
    `prisma/migrations/<timestamp>_<name>/migration.sql` and update
    `docs/database.md` §8 / §9 / §14.
-4. Re-run `yarn db:migrate` to apply the supplementary migration.
+4. Add a route handler under `src/app/api/<thing>/route.ts` (and a
+   section in `docs/api.md`).
+5. Declare types in `src/types/<thing>.ts`.
+6. Add a service in `src/services/<thing>.ts` — one async function per
+   route, each wrapping `http.*` in a `try / failWithToast` pair. Update
+   the endpoint table in `docs/services.md`.
+7. Re-run `yarn db:migrate` to apply the supplementary migration.
 
 ### Adding a new modal
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { clsx } from "clsx";
 import {
   LayoutDashboard,
@@ -55,7 +56,13 @@ const SECTIONS: { heading: string; items: NavItem[] }[] = [
   },
 ];
 
-export default function PortalSidebar() {
+export type SidebarUser = {
+  name: string;
+  email: string;
+  initials: string;
+};
+
+export default function PortalSidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
 
   const isActive = (href: string) =>
@@ -150,16 +157,15 @@ export default function PortalSidebar() {
         </Link>
         <div className="mt-3 flex items-center gap-3 rounded-lg px-3.5 py-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-sky-400/30 to-emerald-400/30 text-xs font-semibold text-white">
-            LN
+            {user.initials}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">Luk Noor</p>
-            <p className="truncate text-[10px] text-white/40">
-              luk.noor@gmail.com
-            </p>
+            <p className="truncate text-sm font-medium text-white">{user.name}</p>
+            <p className="truncate text-[10px] text-white/40">{user.email}</p>
           </div>
           <button
             type="button"
+            onClick={() => signOut({ callbackUrl: "/auth/login" })}
             className="rounded-md p-1.5 text-white/40 transition hover:bg-white/5 hover:text-white"
             aria-label="Sign out"
           >

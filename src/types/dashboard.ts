@@ -30,3 +30,23 @@ export type DayBar = {
   in: number;
   out: number;
 };
+
+// ─── API shape ──────────────────────────────────────────────────────
+
+export type DashboardKpis = {
+  totalInStock:      number;
+  itemsBelowReorder: number;
+  todayStockIn:      number;
+  todayStockOut:     number;
+};
+
+export type WeekDayBar = {
+  day: string;     // "Mon", "Tue", ...
+  in:  number;
+  out: number;
+};
+
+export type DashboardResponse = {
+  kpis:     DashboardKpis;
+  weekDays: WeekDayBar[];   // always length 7, oldest → today
+};

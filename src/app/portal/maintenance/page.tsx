@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Search, PackagePlus, PackageMinus, Trash2 } from "lucide-react";
+import { clsx } from "clsx";
 import {
   PageHeader,
   Surface,
@@ -11,15 +12,13 @@ import {
 import AddStockInDialog from "@/components/modals/add-stock-in";
 import AddStockOutDialog from "@/components/modals/add-stock-out";
 import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
-import { clsx } from "clsx";
-import {
-  maintenanceStockIn,
-  maintenanceStockOut,
-} from "@/utils/sampleData";
-import type { MaintenanceReceipt } from "@/types/maintenance";
-
-type Direction = "in" | "out";
-type MaintenanceMovement = MaintenanceReceipt & { direction: Direction };
+import { listMovements, deleteMovement } from "@/services/stock-movements";
+import { showSuccessToast } from "@/services/toast";
+import { useService } from "@/services/use-service";
+import type {
+  MovementDirection,
+  MovementRow,
+} from "@/types/stock-movements";
 
 const FILTERS = [
   { key: "all", label: "All movements" },
@@ -27,17 +26,18 @@ const FILTERS = [
   { key: "out", label: "Stock out" },
 ] as const;
 
-export default function MaintenancePage() {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("all");
-  const [deleting, setDeleting] = useState<MaintenanceMovement | null>(null);
+type FilterKey = (typeof FILTERS)[number]["key"];
 
-  const movements = useMemo<MaintenanceMovement[]>(() => {
-    const merged: MaintenanceMovement[] = [
-      ...maintenanceStockIn.map((r) => ({ ...r, direction: "in" as const })),
-      ...maintenanceStockOut.map((r) => ({ ...r, direction: "out" as const })),
-    ];
-    return merged.sort((a, b) => b.date.localeCompare(a.date));
-  }, []);
+export default function MaintenancePage() {
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [deleting, setDeleting] = useState<MovementRow | null>(null);
+
+  const { data, loading, refetch } = useService(
+    () => listMovements({ kind: "maintenance" }),
+    [],
+  );
+
+  const movements = data?.data ?? [];
 
   const rows = useMemo(
     () =>
@@ -47,8 +47,20 @@ export default function MaintenancePage() {
     [movements, filter],
   );
 
-  const inCount = movements.filter((m) => m.direction === "in").length;
+  const inCount  = movements.filter((m) => m.direction === "in").length;
   const outCount = movements.length - inCount;
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleting) return;
+    try {
+      await deleteMovement(deleting.id);
+      showSuccessToast("Record deleted", `${deleting.refNo} was removed.`);
+      setDeleting(null);
+      refetch();
+    } catch {
+      // toast already shown
+    }
+  }, [deleting, refetch]);
 
   return (
     <div className="px-8 py-10 animate-page-in">
@@ -68,11 +80,7 @@ export default function MaintenancePage() {
         <div className="inline-flex gap-1 rounded-full border border-white/10 bg-white/3 p-1">
           {FILTERS.map((f) => {
             const count =
-              f.key === "all"
-                ? movements.length
-                : f.key === "in"
-                  ? inCount
-                  : outCount;
+              f.key === "all" ? movements.length : f.key === "in" ? inCount : outCount;
             return (
               <button
                 key={f.key}
@@ -126,7 +134,6 @@ export default function MaintenancePage() {
                 <th className="px-6 py-3 font-medium">Receipt no</th>
                 <th className="px-6 py-3 font-medium">Date</th>
                 <th className="px-6 py-3 font-medium">Item / part</th>
-                <th className="px-6 py-3 font-medium">Category</th>
                 <th className="px-6 py-3 font-medium">Manufacturer</th>
                 <th className="px-6 py-3 font-medium">Vendor</th>
                 <th className="px-6 py-3 font-medium text-right">Qty</th>
@@ -140,68 +147,66 @@ export default function MaintenancePage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={`${r.direction}-${r.no}`}
-                  className="border-b border-white/5 transition hover:bg-white/3"
-                >
-                  <td className="px-6 py-3.5">
-                    <MovementPill direction={r.direction} />
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{r.no}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{r.date}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 font-medium text-white">{r.item}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.category}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.manufacturer}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.vendor}</td>
-                  <td className="px-6 py-3.5 text-right">
-                    <span
-                      className={clsx(
-                        "font-mono text-[12.5px] tracking-tight",
-                        r.direction === "in"
-                          ? "text-emerald-300"
-                          : "text-amber-300",
-                      )}
-                    >
-                      {r.direction === "in" ? "+" : "−"}
-                      {r.qty}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3.5 text-white/65">{r.unit}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.storage}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.application}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.site}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.technician}</td>
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{r.rfq}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setDeleting(r)}
-                        aria-label={`Delete ${r.no}`}
-                        className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+              {loading && rows.length === 0 ? (
+                <tr>
+                  <td colSpan={14} className="px-6 py-10 text-center text-xs text-white/40">
+                    Loading maintenance ledger…
                   </td>
                 </tr>
-              ))}
-              {rows.length === 0 && (
+              ) : rows.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={15}
-                    className="px-6 py-10 text-center text-xs text-white/40"
-                  >
+                  <td colSpan={14} className="px-6 py-10 text-center text-xs text-white/40">
                     No movements match the current filter.
                   </td>
                 </tr>
+              ) : (
+                rows.map((r) => {
+                  const line = r.lines[0];
+                  return (
+                    <tr
+                      key={r.id}
+                      className="border-b border-white/5 transition hover:bg-white/3"
+                    >
+                      <td className="px-6 py-3.5">
+                        <MovementPill direction={r.direction} />
+                      </td>
+                      <td className="px-6 py-3.5"><MonoCell>{r.refNo}</MonoCell></td>
+                      <td className="px-6 py-3.5"><MonoCell>{r.movementDate.slice(0, 10)}</MonoCell></td>
+                      <td className="px-6 py-3.5 font-medium text-white">{line?.itemName ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{r.manufacturer?.name ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{r.supplier?.name ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-right">
+                        <span
+                          className={clsx(
+                            "font-mono text-[12.5px] tracking-tight",
+                            r.direction === "in" ? "text-emerald-300" : "text-amber-300",
+                          )}
+                        >
+                          {r.direction === "in" ? "+" : "−"}
+                          {line?.qty.toLocaleString() ?? "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5 text-white/65">{line?.unit ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{r.storageLocation?.label ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{r.application ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{r.site?.label ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{r.technician?.fullName ?? "—"}</td>
+                      <td className="px-6 py-3.5"><MonoCell>{r.rfq ?? "—"}</MonoCell></td>
+                      <td className="px-6 py-3.5">
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setDeleting(r)}
+                            aria-label={`Delete ${r.refNo}`}
+                            className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -213,17 +218,6 @@ export default function MaintenancePage() {
             {filter === "all" ? "movements" : filter === "in" ? "inbound" : "outbound"}{" "}
             of {movements.length}
           </p>
-          <div className="flex items-center gap-1">
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              Previous
-            </button>
-            <button className="rounded-md bg-white/10 px-3 py-1 font-mono text-white">
-              1
-            </button>
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              Next
-            </button>
-          </div>
         </div>
       </Surface>
 
@@ -237,12 +231,10 @@ export default function MaintenancePage() {
         message={
           <>
             You&apos;re about to remove{" "}
-            <span className="font-mono text-white">{deleting?.no}</span> for{" "}
-            <span className="font-medium text-white">{deleting?.item}</span>.
-            Stock levels will not be auto-adjusted.{" "}
-            <span className="text-rose-300/90">
-              This action cannot be undone.
-            </span>
+            <span className="font-mono text-white">{deleting?.refNo}</span>. The
+            stock-cache trigger will reverse its effect on{" "}
+            <span className="text-white">items.current_stock</span>.{" "}
+            <span className="text-rose-300/90">This action cannot be undone.</span>
           </>
         }
         details={
@@ -250,32 +242,30 @@ export default function MaintenancePage() {
             ? [
                 {
                   label: "Type",
-                  value:
-                    deleting.direction === "in" ? "Stock in" : "Stock out",
+                  value: deleting.direction === "in" ? "Stock in" : "Stock out",
                 },
-                { label: "Date", value: deleting.date },
+                { label: "Date", value: deleting.movementDate.slice(0, 10) },
                 {
                   label: "Quantity",
-                  value: `${deleting.qty} ${deleting.unit}`,
+                  value: deleting.lines[0]
+                    ? `${deleting.lines[0].qty} ${deleting.lines[0].unit}`
+                    : "—",
                 },
-                { label: "Site", value: deleting.site },
-                { label: "Technician", value: deleting.technician },
-                { label: "Application", value: deleting.application },
+                { label: "Site",        value: deleting.site?.label ?? "—" },
+                { label: "Technician",  value: deleting.technician?.fullName ?? "—" },
+                { label: "Application", value: deleting.application ?? "—" },
               ]
             : undefined
         }
         confirmLabel="Delete record"
         onClose={() => setDeleting(null)}
-        onConfirm={() => {
-          // TODO: wire up to backend.
-          setDeleting(null);
-        }}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
 }
 
-function MovementPill({ direction }: { direction: Direction }) {
+function MovementPill({ direction }: { direction: MovementDirection }) {
   if (direction === "in") {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300 ring-1 ring-inset ring-emerald-400/20">

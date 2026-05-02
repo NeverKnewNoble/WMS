@@ -1,19 +1,28 @@
 import type { Metadata } from "next";
 import PortalSidebar from "@/components/ui_components/portal/sidebar";
+import { getSessionUserOrRedirect, initialsFor } from "@/lib/user";
 
 export const metadata: Metadata = {
   title: "Warehouse MS — Portal",
   description: "Warehouse management portal",
 };
 
-export default function PortalLayout({
+export default async function PortalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getSessionUserOrRedirect();
+
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 font-sans text-white">
-      <PortalSidebar />
+      <PortalSidebar
+        user={{
+          name: user.name,
+          email: user.email,
+          initials: initialsFor(user.name || user.email),
+        }}
+      />
 
       <main className="relative flex-1 overflow-y-auto">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.07),transparent_50%)]" />

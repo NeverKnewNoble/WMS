@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Search, Trash2, Upload } from "lucide-react";
 import {
   PageHeader,
@@ -12,11 +12,31 @@ import {
 } from "@/components/ui_components/portal/primitives";
 import AddStockInDialog from "@/components/modals/add-stock-in";
 import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
-import { stockInReceipts } from "@/utils/sampleData";
-import type { StockInReceipt } from "@/types/stock-in";
+import { listMovements, deleteMovement } from "@/services/stock-movements";
+import { showSuccessToast } from "@/services/toast";
+import { useService } from "@/services/use-service";
+import type { MovementRow } from "@/types/stock-movements";
 
 export default function StockInPage() {
-  const [deleting, setDeleting] = useState<StockInReceipt | null>(null);
+  const [deleting, setDeleting] = useState<MovementRow | null>(null);
+
+  const { data, loading, refetch } = useService(
+    () => listMovements({ kind: "operations", direction: "in" }),
+    [],
+  );
+  const movements = data?.data ?? [];
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleting) return;
+    try {
+      await deleteMovement(deleting.id);
+      showSuccessToast("Receipt deleted", `${deleting.refNo} was removed.`);
+      setDeleting(null);
+      refetch();
+    } catch {
+      // toast already shown
+    }
+  }, [deleting, refetch]);
 
   return (
     <div className="px-8 py-10 animate-page-in">
@@ -46,9 +66,6 @@ export default function StockInPage() {
           <input className={fieldClass} type="date" />
           <select className={fieldClass} defaultValue="All Suppliers">
             <option>All Suppliers</option>
-            <option>GHACEM Ltd</option>
-            <option>Steel Corp</option>
-            <option>ColorPro Ghana</option>
           </select>
           <select className={fieldClass} defaultValue="All Categories">
             <option>All Categories</option>
@@ -67,81 +84,93 @@ export default function StockInPage() {
                 <th className="px-6 py-3 font-medium">GRN</th>
                 <th className="px-6 py-3 font-medium">Date</th>
                 <th className="px-6 py-3 font-medium">Item</th>
-                <th className="px-6 py-3 font-medium">Category</th>
                 <th className="px-6 py-3 font-medium text-right">Qty</th>
                 <th className="px-6 py-3 font-medium">Unit</th>
                 <th className="px-6 py-3 font-medium">Supplier</th>
                 <th className="px-6 py-3 font-medium">RFQ</th>
                 <th className="px-6 py-3 font-medium">Dept</th>
-                <th className="px-6 py-3 font-medium">WBS</th>
+                <th className="px-6 py-3 font-medium">Project (WBS)</th>
                 <th className="px-6 py-3 font-medium">Received by</th>
                 <th className="px-6 py-3 font-medium">Condition</th>
                 <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {stockInReceipts.map((r) => (
-                <tr
-                  key={r.grn}
-                  className="border-b border-white/5 transition hover:bg-white/3"
-                >
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{r.grn}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{r.date}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 font-medium text-white">{r.item}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.category}</td>
-                  <td className="px-6 py-3.5 text-right">
-                    <MonoCell>{r.qty}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 text-white/65">{r.unit}</td>
-                  <td className="px-6 py-3.5 text-white/65">{r.supplier}</td>
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{r.rfq}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 text-white/65">{r.dept}</td>
-                  <td className="px-6 py-3.5">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white/5 font-mono text-[11px] font-semibold text-white">
-                      {r.wbs}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3.5 text-white/65">{r.receivedBy}</td>
-                  <td className="px-6 py-3.5">
-                    <StatusPill tone="good">Good</StatusPill>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setDeleting(r)}
-                        aria-label={`Delete ${r.grn}`}
-                        className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+              {loading && movements.length === 0 ? (
+                <tr>
+                  <td colSpan={12} className="px-6 py-10 text-center text-xs text-white/40">
+                    Loading goods received…
                   </td>
                 </tr>
-              ))}
+              ) : movements.length === 0 ? (
+                <tr>
+                  <td colSpan={12} className="px-6 py-10 text-center text-xs text-white/40">
+                    No GRNs yet. Click <span className="text-white/70">Add stock in</span> to record one.
+                  </td>
+                </tr>
+              ) : (
+                movements.map((m) => {
+                  const line = m.lines[0];
+                  return (
+                    <tr
+                      key={m.id}
+                      className="border-b border-white/5 transition hover:bg-white/3"
+                    >
+                      <td className="px-6 py-3.5">
+                        <MonoCell>{m.refNo}</MonoCell>
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <MonoCell>{m.movementDate.slice(0, 10)}</MonoCell>
+                      </td>
+                      <td className="px-6 py-3.5 font-medium text-white">
+                        {line?.itemName ?? "—"}
+                      </td>
+                      <td className="px-6 py-3.5 text-right">
+                        <MonoCell>{line?.qty.toLocaleString() ?? "—"}</MonoCell>
+                      </td>
+                      <td className="px-6 py-3.5 text-white/65">{line?.unit ?? "—"}</td>
+                      <td className="px-6 py-3.5 text-white/65">{m.supplier?.name ?? "—"}</td>
+                      <td className="px-6 py-3.5">
+                        <MonoCell>{m.rfq ?? "—"}</MonoCell>
+                      </td>
+                      <td className="px-6 py-3.5 text-white/65">{m.department?.label ?? "—"}</td>
+                      <td className="px-6 py-3.5">
+                        {m.project ? (
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white/5 font-mono text-[11px] font-semibold text-white">
+                            {m.project.wbs}
+                          </span>
+                        ) : (
+                          <span className="text-white/40">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3.5 text-white/65">
+                        {m.receivedBy?.fullName ?? "—"}
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <StatusPill tone="good">{line?.condition ?? "good"}</StatusPill>
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setDeleting(m)}
+                            aria-label={`Delete ${m.refNo}`}
+                            className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/50">
-          <p>Showing {stockInReceipts.length} entries</p>
-          <div className="flex items-center gap-1">
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              Previous
-            </button>
-            <button className="rounded-md bg-white/10 px-3 py-1 font-mono text-white">
-              1
-            </button>
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              Next
-            </button>
-          </div>
+          <p>{data ? `Showing ${movements.length} of ${data.total} entries` : "—"}</p>
         </div>
       </Surface>
 
@@ -151,33 +180,30 @@ export default function StockInPage() {
         message={
           <>
             You&apos;re about to remove receipt{" "}
-            <span className="font-mono text-white">{deleting?.grn}</span> for{" "}
-            <span className="font-medium text-white">{deleting?.item}</span>.
-            Stock levels will not be auto-adjusted.{" "}
-            <span className="text-rose-300/90">
-              This action cannot be undone.
-            </span>
+            <span className="font-mono text-white">{deleting?.refNo}</span>.
+            The stock-cache trigger will reverse its effect on{" "}
+            <span className="text-white">items.current_stock</span>.{" "}
+            <span className="text-rose-300/90">This action cannot be undone.</span>
           </>
         }
         details={
           deleting
             ? [
-                { label: "Date", value: deleting.date },
-                { label: "Supplier", value: deleting.supplier },
+                { label: "Date",     value: deleting.movementDate.slice(0, 10) },
+                { label: "Supplier", value: deleting.supplier?.name ?? "—" },
                 {
                   label: "Quantity",
-                  value: `${deleting.qty} ${deleting.unit}`,
+                  value: deleting.lines[0]
+                    ? `${deleting.lines[0].qty} ${deleting.lines[0].unit}`
+                    : "—",
                 },
-                { label: "Received by", value: deleting.receivedBy },
+                { label: "Received by", value: deleting.receivedBy?.fullName ?? "—" },
               ]
             : undefined
         }
         confirmLabel="Delete receipt"
         onClose={() => setDeleting(null)}
-        onConfirm={() => {
-          // TODO: wire up to backend.
-          setDeleting(null);
-        }}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

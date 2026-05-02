@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Search, Upload, Pencil, Trash2 } from "lucide-react";
 import {
   PageHeader,
@@ -13,17 +13,48 @@ import {
 import AddItemDialog from "@/components/modals/add-item";
 import EditItemDialog from "@/components/modals/edit-item";
 import DeleteItemDialog from "@/components/modals/delete-item";
-import { inventoryItems } from "@/utils/sampleData";
-import type { Item } from "@/types/inventory";
+import { listItems, deleteItem } from "@/services/items";
+import { showSuccessToast } from "@/services/toast";
+import { useService } from "@/services/use-service";
+import type { ApiItem } from "@/types/items";
+import type { Item as LegacyItem } from "@/types/inventory";
+
+type LegacyItemStatus = LegacyItem["status"];
+
+const STATUS_TONE: Record<ApiItem["status"], LegacyItemStatus> = {
+  in_stock: "in-stock",
+  low:      "low",
+  critical: "critical",
+  out:      "out",
+};
+
+const STATUS_LABEL: Record<ApiItem["status"], string> = {
+  in_stock: "In stock",
+  low:      "Low",
+  critical: "Critical",
+  out:      "Out",
+};
 
 export default function InventoryPage() {
-  const [editing, setEditing] = useState<Item | null>(null);
-  const [deleting, setDeleting] = useState<Item | null>(null);
+  const [editing, setEditing]   = useState<LegacyItem | null>(null);
+  const [deleting, setDeleting] = useState<ApiItem | null>(null);
 
-  const handleConfirmDelete = (_item: Item) => {
-    // TODO: wire up to backend; for now just close the dialog.
-    setDeleting(null);
-  };
+  const { data, loading, refetch } = useService(() => listItems(), []);
+  const items = data?.data ?? [];
+
+  const handleConfirmDelete = useCallback(
+    async (it: ApiItem) => {
+      try {
+        await deleteItem(it.id);
+        showSuccessToast("Item deleted", `${it.name} was removed from the registry.`);
+        setDeleting(null);
+        refetch();
+      } catch {
+        // Service already showed an error toast; keep the dialog open.
+      }
+    },
+    [refetch],
+  );
 
   return (
     <div className="px-8 py-10 animate-page-in ">
@@ -83,82 +114,116 @@ export default function InventoryPage() {
               </tr>
             </thead>
             <tbody>
-              {inventoryItems.map((it) => (
-                <tr
-                  key={it.rfq}
-                  className="border-b border-white/5 transition hover:bg-white/3"
-                >
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{it.rfq}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 font-medium text-white">{it.name}</td>
-                  <td className="px-6 py-3.5 text-white/65">{it.category}</td>
-                  <td className="px-6 py-3.5 text-white/65">{it.unit}</td>
-                  <td className="px-6 py-3.5 text-right">
-                    <MonoCell>{it.current.toLocaleString()}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 text-right text-white/55">
-                    <MonoCell>{it.reorder}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 text-right text-white/55">
-                    <MonoCell>{it.min}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 text-right text-white/55">
-                    <MonoCell>{it.max}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <StatusPill tone={it.status}>{it.statusLabel}</StatusPill>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <div className="flex justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setEditing(it)}
-                        aria-label={`Edit ${it.name}`}
-                        className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-sky-300"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleting(it)}
-                        aria-label={`Delete ${it.name}`}
-                        className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+              {loading && items.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/40">
+                    Loading inventory…
                   </td>
                 </tr>
-              ))}
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/40">
+                    No items yet. Click <span className="text-white/70">Add item</span> to register your first SKU.
+                  </td>
+                </tr>
+              ) : (
+                items.map((it) => (
+                  <tr
+                    key={it.id}
+                    className="border-b border-white/5 transition hover:bg-white/3"
+                  >
+                    <td className="px-6 py-3.5">
+                      <MonoCell>{it.rfq}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5 font-medium text-white">{it.name}</td>
+                    <td className="px-6 py-3.5 text-white/65">{it.category.label}</td>
+                    <td className="px-6 py-3.5 text-white/65">{it.unit.label}</td>
+                    <td className="px-6 py-3.5 text-right">
+                      <MonoCell>{it.currentStock.toLocaleString()}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5 text-right text-white/55">
+                      <MonoCell>{it.reorderLevel}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5 text-right text-white/55">
+                      <MonoCell>{it.minStock}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5 text-right text-white/55">
+                      <MonoCell>{it.maxStock}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <StatusPill tone={STATUS_TONE[it.status]}>
+                        {STATUS_LABEL[it.status]}
+                      </StatusPill>
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditing({
+                              rfq: it.rfq,
+                              name: it.name,
+                              category: it.category.label,
+                              unit: it.unit.label,
+                              current: it.currentStock,
+                              reorder: it.reorderLevel,
+                              min: it.minStock,
+                              max: it.maxStock,
+                              status: STATUS_TONE[it.status],
+                              statusLabel: STATUS_LABEL[it.status],
+                            })
+                          }
+                          aria-label={`Edit ${it.name}`}
+                          className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-sky-300"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleting(it)}
+                          aria-label={`Delete ${it.name}`}
+                          className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/50">
-          <p>Showing 5 of 5 items</p>
-          <div className="flex items-center gap-1">
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              Previous
-            </button>
-            <button className="rounded-md bg-white/10 px-3 py-1 font-mono text-white">
-              1
-            </button>
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              2
-            </button>
-            <button className="rounded-md px-3 py-1 text-white/60 transition hover:bg-white/5 hover:text-white">
-              Next
-            </button>
-          </div>
+          <p>
+            {data
+              ? `Showing ${items.length} of ${data.total} item${data.total === 1 ? "" : "s"}`
+              : "—"}
+          </p>
         </div>
       </Surface>
 
       <EditItemDialog item={editing} onClose={() => setEditing(null)} />
       <DeleteItemDialog
-        item={deleting}
+        item={
+          deleting
+            ? {
+                rfq: deleting.rfq,
+                name: deleting.name,
+                category: deleting.category.label,
+                unit: deleting.unit.label,
+                current: deleting.currentStock,
+                reorder: deleting.reorderLevel,
+                min: deleting.minStock,
+                max: deleting.maxStock,
+                status: STATUS_TONE[deleting.status],
+                statusLabel: STATUS_LABEL[deleting.status],
+              }
+            : null
+        }
         onClose={() => setDeleting(null)}
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => deleting && handleConfirmDelete(deleting)}
       />
     </div>
   );

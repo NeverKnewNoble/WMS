@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Search, Eye } from "lucide-react";
 import {
   PageHeader,
@@ -12,13 +12,43 @@ import AddProjectDialog from "@/components/modals/add-project";
 import EditProjectDialog from "@/components/modals/edit-project";
 import ProjectDetailsDialog from "@/components/modals/project-details";
 import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
-import { projectsList } from "@/utils/sampleData";
-import type { Project } from "@/types/projects";
+import { listProjects, deleteProject } from "@/services/projects";
+import { showSuccessToast } from "@/services/toast";
+import { useService } from "@/services/use-service";
+import type { ProjectListRow } from "@/types/projects";
+import type { Project as LegacyProject } from "@/types/projects";
+
+/** Adapts the API row to the legacy modal contract (string fields). */
+function toLegacy(p: ProjectListRow): LegacyProject {
+  return {
+    wbs: p.wbs,
+    name: p.name,
+    location: p.location,
+    itemsIssued: 0, // not present on the list endpoint
+    qtyConsumed: p.qtyConsumed.toLocaleString(),
+    lastActivity: p.lastActivity?.slice(0, 10) ?? "—",
+  };
+}
 
 export default function ProjectsPage() {
-  const [selected, setSelected] = useState<Project | null>(null);
-  const [editing, setEditing] = useState<Project | null>(null);
-  const [deleting, setDeleting] = useState<Project | null>(null);
+  const [selected, setSelected] = useState<ProjectListRow | null>(null);
+  const [editing, setEditing] = useState<ProjectListRow | null>(null);
+  const [deleting, setDeleting] = useState<ProjectListRow | null>(null);
+
+  const { data, loading, refetch } = useService(() => listProjects(), []);
+  const projects = data?.data ?? [];
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleting) return;
+    try {
+      await deleteProject(deleting.id);
+      showSuccessToast("Project deleted", `${deleting.name} was removed.`);
+      setDeleting(null);
+      refetch();
+    } catch {
+      // toast already shown
+    }
+  }, [deleting, refetch]);
 
   return (
     <div className="px-8 py-10 animate-page-in">
@@ -47,67 +77,77 @@ export default function ProjectsPage() {
                 <th className="px-6 py-3 font-medium">WBS</th>
                 <th className="px-6 py-3 font-medium">Project name</th>
                 <th className="px-6 py-3 font-medium">Location</th>
-                <th className="px-6 py-3 font-medium text-right">Items issued</th>
                 <th className="px-6 py-3 font-medium text-right">Qty consumed</th>
                 <th className="px-6 py-3 font-medium">Last activity</th>
                 <th className="px-6 py-3 font-medium text-right">Action</th>
               </tr>
             </thead>
             <tbody>
-              {projectsList.map((p) => (
-                <tr
-                  key={p.name}
-                  className="border-b border-white/5 transition hover:bg-white/3"
-                >
-                  <td className="px-6 py-3.5">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-white/5 font-mono text-xs font-semibold text-white">
-                      {p.wbs}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3.5 font-medium text-white">{p.name}</td>
-                  <td className="px-6 py-3.5 text-white/65">{p.location}</td>
-                  <td className="px-6 py-3.5 text-right">
-                    <MonoCell>{p.itemsIssued}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5 text-right">
-                    <MonoCell>{p.qtyConsumed}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <MonoCell>{p.lastActivity}</MonoCell>
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setSelected(p)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-sky-400/30 hover:bg-sky-400/10 hover:text-sky-200"
-                      >
-                        <Eye className="h-3.5 w-3.5" /> View details
-                      </button>
-                    </div>
+              {loading && projects.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/40">
+                    Loading projects…
                   </td>
                 </tr>
-              ))}
+              ) : projects.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/40">
+                    No projects yet. Click <span className="text-white/70">Add project</span> to start.
+                  </td>
+                </tr>
+              ) : (
+                projects.map((p) => (
+                  <tr
+                    key={p.id}
+                    className="border-b border-white/5 transition hover:bg-white/3"
+                  >
+                    <td className="px-6 py-3.5">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-white/5 font-mono text-xs font-semibold text-white">
+                        {p.wbs}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3.5 font-medium text-white">{p.name}</td>
+                    <td className="px-6 py-3.5 text-white/65">{p.location}</td>
+                    <td className="px-6 py-3.5 text-right">
+                      <MonoCell>{p.qtyConsumed.toLocaleString()}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <MonoCell>{p.lastActivity?.slice(0, 10) ?? "—"}</MonoCell>
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setSelected(p)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-sky-400/30 hover:bg-sky-400/10 hover:text-sky-200"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> View details
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </Surface>
 
       <ProjectDetailsDialog
-        project={selected}
+        project={selected ? toLegacy(selected) : null}
         onClose={() => setSelected(null)}
-        onEdit={(p) => {
+        onEdit={() => {
+          setEditing(selected);
           setSelected(null);
-          setEditing(p);
         }}
-        onDelete={(p) => {
+        onDelete={() => {
+          setDeleting(selected);
           setSelected(null);
-          setDeleting(p);
         }}
       />
 
       <EditProjectDialog
-        project={editing}
+        project={editing ? toLegacy(editing) : null}
         onClose={() => setEditing(null)}
       />
 
@@ -117,9 +157,7 @@ export default function ProjectsPage() {
         message={
           <>
             You&apos;re about to remove{" "}
-            <span className="font-medium text-white">
-              {deleting?.name}
-            </span>{" "}
+            <span className="font-medium text-white">{deleting?.name}</span>{" "}
             from the registry. Future MRNs and reports will no longer reference
             it.{" "}
             <span className="text-rose-300/90">
@@ -132,17 +170,14 @@ export default function ProjectsPage() {
             ? [
                 { label: "WBS", value: deleting.wbs },
                 { label: "Location", value: deleting.location },
-                { label: "Items issued", value: deleting.itemsIssued },
-                { label: "Qty consumed", value: deleting.qtyConsumed },
+                { label: "Qty consumed", value: deleting.qtyConsumed.toLocaleString() },
+                { label: "Last activity", value: deleting.lastActivity?.slice(0, 10) ?? "—" },
               ]
             : undefined
         }
         confirmLabel="Delete project"
         onClose={() => setDeleting(null)}
-        onConfirm={() => {
-          // TODO: wire up to backend.
-          setDeleting(null);
-        }}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
