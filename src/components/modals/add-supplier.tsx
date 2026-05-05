@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Plus, X, MapPin, CalendarRange, Hash } from "lucide-react";
+import { Plus, X, Building2, Mail, Phone, MapPin, User } from "lucide-react";
 import { FieldLabel, fieldClass } from "../ui_components/portal/primitives";
-import { createProject } from "@/services/projects";
-import { getLookups } from "@/services/lookups";
+import { createSupplier } from "@/services/suppliers";
 import { showSuccessToast } from "@/services/toast";
-import type { ProjectStatus } from "@/types/projects";
-import type { Lookups } from "@/types/lookups";
 
-export default function AddProjectDialog({
+export default function AddSupplierDialog({
   onCreated,
 }: {
   onCreated?: () => void;
@@ -18,7 +15,6 @@ export default function AddProjectDialog({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [lookups, setLookups] = useState<Lookups | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -35,22 +31,6 @@ export default function AddProjectDialog({
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const l = await getLookups();
-        if (!cancelled) setLookups(l);
-      } catch {
-        // toast already shown
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
-
   const close = () => setOpen(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -60,25 +40,17 @@ export default function AddProjectDialog({
 
     const fd = new FormData(e.currentTarget);
     const get = (k: string) => fd.get(k)?.toString().trim() ?? "";
-    const numOrNull = (k: string) => {
-      const v = fd.get(k)?.toString().trim();
-      return v ? Number(v) : null;
-    };
 
     try {
-      const project = await createProject({
-        wbs:               get("wbs"),
-        name:              get("name"),
-        location:          get("location"),
-        regionCode:        get("regionCode") || null,
-        managerEmail:      get("managerEmail") || null,
-        status:            (get("status") || "active") as ProjectStatus,
-        startDate:         get("startDate") || null,
-        estimatedEndDate:  get("estimatedEndDate") || null,
-        budget:            numOrNull("budget"),
-        description:       get("description") || null,
+      const supplier = await createSupplier({
+        name:        get("name"),
+        contactName: get("contactName") || null,
+        email:       get("email") || null,
+        phone:       get("phone") || null,
+        address:     get("address") || null,
+        isActive:    get("isActive") === "on",
       });
-      showSuccessToast("Project created", `${project.name} added.`);
+      showSuccessToast("Supplier created", `${supplier.name} added.`);
       onCreated?.();
       close();
     } catch {
@@ -95,7 +67,7 @@ export default function AddProjectDialog({
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/30 transition hover:bg-zinc-100"
       >
-        <Plus className="h-4 w-4" /> Add project
+        <Plus className="h-4 w-4" /> Add supplier
       </button>
 
       {open &&
@@ -114,13 +86,13 @@ export default function AddProjectDialog({
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/8 px-6 pb-5 pt-6">
                   <div>
                     <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-sky-300/80">
-                      Operations
+                      Reference
                     </p>
                     <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
-                      Add new project
+                      Add new supplier
                     </h2>
                     <p className="mt-1 text-xs text-white/50">
-                      Register a project so material issues can be tracked against it.
+                      Register a vendor so it can be selected on stock-in receipts.
                     </p>
                   </div>
                   <button
@@ -137,116 +109,79 @@ export default function AddProjectDialog({
                     onSubmit={onSubmit}
                     className="grid grid-cols-1 gap-5 sm:grid-cols-2"
                   >
-                    <div>
-                      <FieldLabel>WBS code *</FieldLabel>
+                    <div className="sm:col-span-2">
+                      <FieldLabel>Supplier name *</FieldLabel>
                       <div className="relative">
-                        <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Building2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
                         <input
-                          name="wbs"
+                          name="name"
                           className={`${fieldClass} pl-9`}
-                          placeholder="e.g. K, 12, A-3"
+                          placeholder="e.g. Ashanti Steel Ltd."
                           required
                         />
                       </div>
                     </div>
 
                     <div>
-                      <FieldLabel>Project name *</FieldLabel>
-                      <input
-                        name="name"
-                        className={fieldClass}
-                        placeholder="e.g. Bantama Phase 4"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel>Location *</FieldLabel>
+                      <FieldLabel>Contact name</FieldLabel>
                       <div className="relative">
-                        <MapPin className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <User className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
                         <input
-                          name="location"
+                          name="contactName"
                           className={`${fieldClass} pl-9`}
-                          placeholder="e.g. Kumasi"
-                          required
+                          placeholder="e.g. Akua Mensah"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <FieldLabel>Region</FieldLabel>
-                      <select name="regionCode" className={fieldClass} defaultValue="">
-                        <option value="">—</option>
-                        {lookups?.regions.map((r) => (
-                          <option key={r.id} value={r.code}>
-                            {r.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <FieldLabel>Project manager email</FieldLabel>
-                      <input
-                        name="managerEmail"
-                        type="email"
-                        className={fieldClass}
-                        placeholder="manager@example.com"
-                      />
-                    </div>
-
-                    <div>
-                      <FieldLabel>Status</FieldLabel>
-                      <select name="status" className={fieldClass} defaultValue="active">
-                        <option value="active">Active</option>
-                        <option value="on_hold">On Hold</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <FieldLabel>Start date</FieldLabel>
+                      <FieldLabel>Email</FieldLabel>
                       <div className="relative">
-                        <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
                         <input
-                          name="startDate"
-                          type="date"
+                          name="email"
+                          type="email"
                           className={`${fieldClass} pl-9`}
+                          placeholder="sales@supplier.com"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <FieldLabel>Estimated end date</FieldLabel>
+                      <FieldLabel>Phone</FieldLabel>
                       <div className="relative">
-                        <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Phone className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
                         <input
-                          name="estimatedEndDate"
-                          type="date"
+                          name="phone"
                           className={`${fieldClass} pl-9`}
+                          placeholder="+233 ..."
                         />
                       </div>
+                    </div>
+
+                    <div className="flex items-end">
+                      <label className="inline-flex items-center gap-2 text-sm text-white/80">
+                        <input
+                          name="isActive"
+                          type="checkbox"
+                          defaultChecked
+                          className="h-4 w-4 rounded border-white/20 bg-white/10 accent-sky-400"
+                        />
+                        Active
+                      </label>
                     </div>
 
                     <div className="sm:col-span-2">
-                      <FieldLabel>Budget (GHS)</FieldLabel>
-                      <input
-                        name="budget"
-                        type="number"
-                        className={fieldClass}
-                        placeholder="0.00"
-                        min={0}
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <FieldLabel>Description</FieldLabel>
-                      <textarea
-                        name="description"
-                        rows={3}
-                        className={`${fieldClass} resize-none`}
-                        placeholder="Scope of works, key milestones, special handling..."
-                      />
+                      <FieldLabel>Address</FieldLabel>
+                      <div className="relative">
+                        <MapPin className="pointer-events-none absolute left-3 top-3 h-3.5 w-3.5 text-white/40" />
+                        <textarea
+                          name="address"
+                          rows={2}
+                          className={`${fieldClass} resize-none pl-9`}
+                          placeholder="Street, city, region..."
+                        />
+                      </div>
                     </div>
 
                     <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-2">
@@ -262,7 +197,7 @@ export default function AddProjectDialog({
                         disabled={submitting}
                         className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/30 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {submitting ? "Saving…" : "Create project"}
+                        {submitting ? "Saving…" : "Create supplier"}
                       </button>
                     </div>
                   </form>

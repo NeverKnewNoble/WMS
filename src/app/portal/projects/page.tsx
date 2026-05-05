@@ -15,16 +15,15 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { listProjects, deleteProject } from "@/services/projects";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
-import type { ProjectListRow } from "@/types/projects";
-import type { Project as LegacyProject } from "@/types/projects";
+import type { ProjectListRow, Project as LegacyProject } from "@/types/projects";
 
-/** Adapts the API row to the legacy modal contract (string fields). */
+/** Adapts the API row to the legacy shape that ProjectDetailsDialog still uses. */
 function toLegacy(p: ProjectListRow): LegacyProject {
   return {
     wbs: p.wbs,
     name: p.name,
     location: p.location,
-    itemsIssued: 0, // not present on the list endpoint
+    itemsIssued: 0,
     qtyConsumed: p.qtyConsumed.toLocaleString(),
     lastActivity: p.lastActivity?.slice(0, 10) ?? "—",
   };
@@ -56,7 +55,7 @@ export default function ProjectsPage() {
         eyebrow="Operations"
         title="Projects"
         subtitle="Track material consumption across every active project on the books."
-        actions={<AddProjectDialog />}
+        actions={<AddProjectDialog onCreated={refetch} />}
       />
 
       <Surface className="mt-8 p-4">
@@ -147,8 +146,9 @@ export default function ProjectsPage() {
       />
 
       <EditProjectDialog
-        project={editing ? toLegacy(editing) : null}
+        project={editing}
         onClose={() => setEditing(null)}
+        onSaved={refetch}
       />
 
       <ConfirmDeleteDialog

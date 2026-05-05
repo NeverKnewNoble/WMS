@@ -22,3 +22,82 @@ export type Lookups = {
   storageLocations: StorageLookup[];
   roles:            RoleLookup[];
 };
+
+// ─── Supplier (full record) ─────────────────────────────────────────
+
+export type SupplierRow = {
+  id:          string;
+  name:        string;
+  contactName: string | null;
+  email:       string | null;
+  phone:       string | null;
+  address:     string | null;
+  isActive:    boolean;
+  createdAt:   string;
+};
+
+export type SuppliersListResponse = {
+  data:   SupplierRow[];
+  total:  number;
+  limit:  number;
+  offset: number;
+};
+
+export type CreateSupplierPayload = {
+  name:         string;
+  contactName?: string | null;
+  email?:       string | null;
+  phone?:       string | null;
+  address?:     string | null;
+  isActive?:    boolean;
+};
+
+export type UpdateSupplierPayload = Partial<CreateSupplierPayload>;
+
+// ─── Department (full record) ───────────────────────────────────────
+
+export type DepartmentRow = {
+  id:        string;
+  code:      string;
+  label:     string;
+  createdAt: string;
+};
+
+export type DepartmentsListResponse = {
+  data:   DepartmentRow[];
+  total:  number;
+  limit:  number;
+  offset: number;
+};
+
+export type CreateDepartmentPayload = {
+  code:  string;
+  label: string;
+};
+
+export type UpdateDepartmentPayload = Partial<CreateDepartmentPayload>;
+
+// ─── Storage location (full record) ─────────────────────────────────
+
+export type StorageLocationRow = {
+  id:        string;
+  code:      string;
+  label:     string;
+  address:   string | null;
+  createdAt: string;
+};
+
+export type StorageLocationsListResponse = {
+  data:   StorageLocationRow[];
+  total:  number;
+  limit:  number;
+  offset: number;
+};
+
+export type CreateStorageLocationPayload = {
+  code:     string;
+  label:    string;
+  address?: string | null;
+};
+
+export type UpdateStorageLocationPayload = Partial<CreateStorageLocationPayload>;

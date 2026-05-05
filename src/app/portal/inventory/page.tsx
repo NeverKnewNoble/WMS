@@ -9,6 +9,7 @@ import {
   MonoCell,
   fieldClass,
   ToolbarButton,
+  type StatusTone,
 } from "@/components/ui_components/portal/primitives";
 import AddItemDialog from "@/components/modals/add-item";
 import EditItemDialog from "@/components/modals/edit-item";
@@ -17,11 +18,8 @@ import { listItems, deleteItem } from "@/services/items";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
 import type { ApiItem } from "@/types/items";
-import type { Item as LegacyItem } from "@/types/inventory";
 
-type LegacyItemStatus = LegacyItem["status"];
-
-const STATUS_TONE: Record<ApiItem["status"], LegacyItemStatus> = {
+const STATUS_TONE: Record<ApiItem["status"], StatusTone> = {
   in_stock: "in-stock",
   low:      "low",
   critical: "critical",
@@ -36,7 +34,7 @@ const STATUS_LABEL: Record<ApiItem["status"], string> = {
 };
 
 export default function InventoryPage() {
-  const [editing, setEditing]   = useState<LegacyItem | null>(null);
+  const [editing, setEditing]   = useState<ApiItem | null>(null);
   const [deleting, setDeleting] = useState<ApiItem | null>(null);
 
   const { data, loading, refetch } = useService(() => listItems(), []);
@@ -50,7 +48,7 @@ export default function InventoryPage() {
         setDeleting(null);
         refetch();
       } catch {
-        // Service already showed an error toast; keep the dialog open.
+        // service already toasted; keep dialog open
       }
     },
     [refetch],
@@ -67,7 +65,7 @@ export default function InventoryPage() {
             <ToolbarButton variant="ghost">
               <Upload className="h-4 w-4" /> Upload Excel
             </ToolbarButton>
-            <AddItemDialog />
+            <AddItemDialog onCreated={refetch} />
           </>
         }
       />
@@ -159,20 +157,7 @@ export default function InventoryPage() {
                       <div className="flex justify-end gap-1">
                         <button
                           type="button"
-                          onClick={() =>
-                            setEditing({
-                              rfq: it.rfq,
-                              name: it.name,
-                              category: it.category.label,
-                              unit: it.unit.label,
-                              current: it.currentStock,
-                              reorder: it.reorderLevel,
-                              min: it.minStock,
-                              max: it.maxStock,
-                              status: STATUS_TONE[it.status],
-                              statusLabel: STATUS_LABEL[it.status],
-                            })
-                          }
+                          onClick={() => setEditing(it)}
                           aria-label={`Edit ${it.name}`}
                           className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-sky-300"
                         >
@@ -204,26 +189,15 @@ export default function InventoryPage() {
         </div>
       </Surface>
 
-      <EditItemDialog item={editing} onClose={() => setEditing(null)} />
+      <EditItemDialog
+        item={editing}
+        onClose={() => setEditing(null)}
+        onSaved={refetch}
+      />
       <DeleteItemDialog
-        item={
-          deleting
-            ? {
-                rfq: deleting.rfq,
-                name: deleting.name,
-                category: deleting.category.label,
-                unit: deleting.unit.label,
-                current: deleting.currentStock,
-                reorder: deleting.reorderLevel,
-                min: deleting.minStock,
-                max: deleting.maxStock,
-                status: STATUS_TONE[deleting.status],
-                statusLabel: STATUS_LABEL[deleting.status],
-              }
-            : null
-        }
+        item={deleting}
         onClose={() => setDeleting(null)}
-        onConfirm={() => deleting && handleConfirmDelete(deleting)}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

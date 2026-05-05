@@ -4,10 +4,20 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { FieldLabel, fieldClass } from "../ui_components/portal/primitives";
+import { createItem } from "@/services/items";
+import { getLookups } from "@/services/lookups";
+import { showSuccessToast } from "@/services/toast";
+import type { Lookups } from "@/types/lookups";
 
-export default function AddItemDialog() {
+export default function AddItemDialog({
+  onCreated,
+}: {
+  onCreated?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [lookups, setLookups] = useState<Lookups | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -24,7 +34,54 @@ export default function AddItemDialog() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const l = await getLookups();
+        if (!cancelled) setLookups(l);
+      } catch {
+        // toast already shown
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
   const close = () => setOpen(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+
+    const fd = new FormData(e.currentTarget);
+    const get = (k: string) => fd.get(k)?.toString().trim() ?? "";
+    const num = (k: string) => Number(fd.get(k) ?? 0);
+
+    try {
+      const item = await createItem({
+        rfq:                 get("rfq"),
+        name:                get("name"),
+        categoryCode:        get("categoryCode"),
+        unitCode:            get("unitCode"),
+        defaultSupplierName: get("supplier") || null,
+        reorderLevel:        num("reorderLevel"),
+        minStock:            num("minStock"),
+        maxStock:            num("maxStock"),
+        description:         get("description") || null,
+      });
+      showSuccessToast("Item created", `${item.name} added to the registry.`);
+      onCreated?.();
+      close();
+    } catch {
+      // toast already shown by service
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <>
@@ -69,103 +126,123 @@ export default function AddItemDialog() {
 
                 <div className="flex-1 overflow-y-auto px-6 py-6">
                   <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      close();
-                    }}
+                    onSubmit={onSubmit}
                     className="grid grid-cols-1 gap-5 sm:grid-cols-2"
                   >
                     <div className="sm:col-span-1">
                       <FieldLabel>Item name *</FieldLabel>
                       <input
+                        name="name"
                         className={fieldClass}
                         placeholder="e.g. Cement 50kg"
                         required
                       />
                     </div>
                     <div>
-                      <FieldLabel>RFQ number</FieldLabel>
-                      <input className={fieldClass} defaultValue="RFQ-006" />
+                      <FieldLabel>RFQ number *</FieldLabel>
+                      <input
+                        name="rfq"
+                        className={fieldClass}
+                        placeholder="e.g. RFQ-006"
+                        required
+                      />
                     </div>
 
                     <div>
                       <FieldLabel>Category *</FieldLabel>
                       <select
+                        name="categoryCode"
                         className={fieldClass}
                         required
-                        defaultValue="Structural"
+                        defaultValue=""
                       >
-                        <option>Structural</option>
-                        <option>Finishing</option>
-                        <option>Electrical</option>
-                        <option>Mechanical</option>
+                        <option value="" disabled>
+                          {lookups ? "Select a category" : "Loading categories…"}
+                        </option>
+                        {lookups?.categories.map((c) => (
+                          <option key={c.id} value={c.code}>
+                            {c.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
                       <FieldLabel>Unit of measure *</FieldLabel>
                       <select
+                        name="unitCode"
                         className={fieldClass}
                         required
-                        defaultValue="Bags"
+                        defaultValue=""
                       >
-                        <option>Bags</option>
-                        <option>Pieces</option>
-                        <option>Litres</option>
-                        <option>Metres</option>
-                        <option>Kilograms</option>
+                        <option value="" disabled>
+                          {lookups ? "Select a unit" : "Loading units…"}
+                        </option>
+                        {lookups?.units.map((u) => (
+                          <option key={u.id} value={u.code}>
+                            {u.label}
+                            {u.symbol ? ` (${u.symbol})` : ""}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     <div>
-                      <FieldLabel>Current stock</FieldLabel>
+                      <FieldLabel>Reorder level</FieldLabel>
                       <input
+                        name="reorderLevel"
                         className={fieldClass}
                         type="number"
+                        min={0}
                         defaultValue={0}
                       />
                     </div>
                     <div>
-                      <FieldLabel>Reorder level</FieldLabel>
+                      <FieldLabel>Minimum stock</FieldLabel>
                       <input
+                        name="minStock"
                         className={fieldClass}
                         type="number"
+                        min={0}
                         defaultValue={0}
                       />
                     </div>
 
-                    <div>
-                      <FieldLabel>Minimum stock</FieldLabel>
-                      <input
-                        className={fieldClass}
-                        type="number"
-                        defaultValue={0}
-                      />
-                    </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <FieldLabel>Maximum stock</FieldLabel>
                       <input
+                        name="maxStock"
                         className={fieldClass}
                         type="number"
+                        min={0}
                         defaultValue={0}
                       />
                     </div>
 
                     <div className="sm:col-span-2">
                       <FieldLabel>Supplier / vendor</FieldLabel>
-                      <input
-                        className={fieldClass}
-                        placeholder="e.g. GHACEM Ltd"
-                      />
+                      <select name="supplier" className={fieldClass} defaultValue="">
+                        <option value="">—</option>
+                        {lookups?.suppliers.map((s) => (
+                          <option key={s.id} value={s.name}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="sm:col-span-2">
                       <FieldLabel>Description</FieldLabel>
                       <textarea
+                        name="description"
                         rows={3}
                         className={`${fieldClass} resize-none`}
                         placeholder="Notes about this item, packaging, handling..."
                       />
                     </div>
+
+                    <p className="sm:col-span-2 text-[11px] text-white/40">
+                      Stock on hand is updated automatically as you record GRNs and MRNs.
+                    </p>
 
                     <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-2">
                       <button
@@ -177,9 +254,10 @@ export default function AddItemDialog() {
                       </button>
                       <button
                         type="submit"
-                        className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/30 transition hover:bg-zinc-100"
+                        disabled={submitting}
+                        className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/30 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Save item
+                        {submitting ? "Saving…" : "Save item"}
                       </button>
                     </div>
                   </form>

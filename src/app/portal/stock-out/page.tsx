@@ -48,7 +48,7 @@ export default function StockOutPage() {
             <ToolbarButton variant="ghost">
               <Upload className="h-4 w-4" /> Upload Excel
             </ToolbarButton>
-            <AddStockOutDialog />
+            <AddStockOutDialog onCreated={refetch} />
           </>
         }
       />

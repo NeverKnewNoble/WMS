@@ -3,16 +3,28 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
-import { clsx } from "clsx";
 import { FieldLabel, fieldClass } from "../ui_components/portal/primitives";
+import { createMovement } from "@/services/stock-movements";
+import { showSuccessToast } from "@/services/toast";
+import { getLookups } from "@/services/lookups";
+import { listItems } from "@/services/items";
+import { listProjects } from "@/services/projects";
+import type { Lookups } from "@/types/lookups";
+import type { ApiItem } from "@/types/items";
+import type { ProjectListRow } from "@/types/projects";
 
-const TABS = ["Standard form", "Bulk upload via Excel"] as const;
-type Tab = (typeof TABS)[number];
-
-export default function AddStockOutDialog() {
+export default function AddStockOutDialog({
+  onCreated,
+}: {
+  onCreated?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [tab, setTab] = useState<Tab>("Standard form");
+  const [submitting, setSubmitting] = useState(false);
+
+  const [lookups, setLookups] = useState<Lookups | null>(null);
+  const [items, setItems] = useState<ApiItem[]>([]);
+  const [projects, setProjects] = useState<ProjectListRow[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -29,7 +41,69 @@ export default function AddStockOutDialog() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [l, i, p] = await Promise.all([
+          getLookups(),
+          listItems({ limit: 500 }),
+          listProjects({ limit: 500 }),
+        ]);
+        if (cancelled) return;
+        setLookups(l);
+        setItems(i.data);
+        setProjects(p.data);
+      } catch {
+        // toast already shown by services
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
   const close = () => setOpen(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+
+    const fd = new FormData(e.currentTarget);
+    const get = (k: string) => fd.get(k)?.toString().trim() ?? "";
+
+    try {
+      const m = await createMovement({
+        refNo:              get("refNo"),
+        direction:          "out",
+        kind:               "operations",
+        movementDate:       get("movementDate"),
+        rfq:                get("rfq") || null,
+        notes:              get("notes") || null,
+        projectWbs:         get("projectWbs"),
+        departmentCode:     get("departmentCode") || null,
+        activity:           get("activity") || null,
+        issuedToEmail:      get("issuedToEmail") || null,
+        authorisedByEmail:  get("authorisedByEmail") || null,
+        lines: [
+          {
+            itemRfq:  get("itemRfq"),
+            qty:      Number(fd.get("qty") ?? 0),
+            unitCode: get("unitCode"),
+          },
+        ],
+      });
+      showSuccessToast("MRN recorded", `${m.refNo} saved.`);
+      onCreated?.();
+      close();
+    } catch {
+      // toast already shown
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <>
@@ -38,7 +112,7 @@ export default function AddStockOutDialog() {
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-sky-400 to-cyan-400 px-5 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-sky-500/20 transition hover:brightness-110"
       >
-        <Plus className="h-4 w-4" /> Issue Stock Out
+        <Plus className="h-4 w-4" /> Record Stock Out
       </button>
 
       {open &&
@@ -57,10 +131,12 @@ export default function AddStockOutDialog() {
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/8 px-6 pb-5 pt-6">
                   <div>
                     <h2 className="text-lg font-semibold tracking-tight text-white">
-                      Issue stock out
+                      Issue materials (MRN)
                     </h2>
                     <p className="mt-1 text-xs text-white/50">
-                      Create a Material Requisition Note for a project.
+                      Issue stock to a project. The trigger reduces{" "}
+                      <span className="text-white">items.current_stock</span>{" "}
+                      automatically.
                     </p>
                   </div>
                   <button
@@ -73,207 +149,167 @@ export default function AddStockOutDialog() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-6 py-6">
-                  <div className="mb-6">
-                    <div className="inline-flex gap-1 rounded-full border border-white/10 bg-zinc-950/80 p-1 text-xs">
-                      {TABS.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => setTab(t)}
-                          className={clsx(
-                            "rounded-full px-4 py-1.5 font-medium transition",
-                            tab === t
-                              ? "bg-white text-zinc-900"
-                              : "text-white/60 hover:text-white",
-                          )}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {tab === "Standard form" ? (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        close();
-                      }}
-                      className="grid grid-cols-1 gap-5 sm:grid-cols-3"
-                    >
-                      <div>
-                        <FieldLabel>MRN number</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          defaultValue="MRN-2026-003"
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel>Date of issue *</FieldLabel>
-                        <input className={fieldClass} type="date" required />
-                      </div>
-                      <div>
-                        <FieldLabel>Item name *</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          placeholder="Search item..."
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <FieldLabel>Category</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          placeholder="Auto-filled"
-                          disabled
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel>Current stock</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          placeholder="Auto-filled"
-                          disabled
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel>Quantity to issue *</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          type="number"
-                          required
-                          defaultValue={0}
-                        />
-                      </div>
-
-                      <div>
-                        <FieldLabel>Unit of measure</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          placeholder="Auto-filled"
-                          disabled
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel>Project *</FieldLabel>
-                        <select
-                          className={fieldClass}
-                          required
-                          defaultValue=""
-                        >
-                          <option value="" disabled>
-                            Select project
-                          </option>
-                          <option>Asylum Down</option>
-                          <option>Asokwa</option>
-                          <option>Bantama Phase 3</option>
-                          <option>Manso</option>
-                        </select>
-                      </div>
-                      <div>
-                        <FieldLabel>Work activity *</FieldLabel>
-                        <input
-                          className={fieldClass}
-                          placeholder="e.g. Foundation works"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <FieldLabel>WBS code *</FieldLabel>
-                        <select className={fieldClass} required>
-                          <option>K</option>
-                          <option>A</option>
-                          <option>1</option>
-                          <option>2</option>
-                        </select>
-                      </div>
-                      <div>
-                        <FieldLabel>RFQ number *</FieldLabel>
-                        <input className={fieldClass} required />
-                      </div>
-                      <div>
-                        <FieldLabel>Department *</FieldLabel>
-                        <select className={fieldClass} required>
-                          <option>Administration</option>
-                          <option>Engineering</option>
-                          <option>Civil</option>
-                          <option>Production</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <FieldLabel>Requested by *</FieldLabel>
-                        <input className={fieldClass} required />
-                      </div>
-                      <div>
-                        <FieldLabel>Authorised by *</FieldLabel>
-                        <input className={fieldClass} required />
-                      </div>
-                      <div>
-                        <FieldLabel>Site / delivery location</FieldLabel>
-                        <input className={fieldClass} />
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <FieldLabel>Notes / remarks</FieldLabel>
-                        <textarea
-                          rows={3}
-                          className={`${fieldClass} resize-none`}
-                        />
-                      </div>
-
-                      <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-3">
-                        <button
-                          type="button"
-                          onClick={close}
-                          className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/30 transition hover:bg-zinc-100"
-                        >
-                          Submit MRN
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
+                  <form onSubmit={onSubmit} className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                     <div>
-                      <div className="rounded-2xl border border-dashed border-white/15 bg-zinc-950/40 px-6 py-12 text-center">
-                        <p className="text-sm font-medium text-white">
-                          Drop your Excel file here
-                        </p>
-                        <p className="mt-1 text-xs text-white/50">
-                          .xlsx · max 10 MB · matches the standard column
-                          template
-                        </p>
-                        <button
-                          type="button"
-                          className="mt-5 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
-                        >
-                          Choose file
-                        </button>
-                      </div>
-                      <div className="-mx-6 mt-6 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5">
-                        <button
-                          type="button"
-                          onClick={close}
-                          className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/30 transition hover:bg-zinc-100"
-                        >
-                          Upload MRN sheet
-                        </button>
-                      </div>
+                      <FieldLabel>MRN number *</FieldLabel>
+                      <input
+                        name="refNo"
+                        className={fieldClass}
+                        placeholder="e.g. MRN-2026-007"
+                        required
+                      />
                     </div>
-                  )}
+                    <div>
+                      <FieldLabel>Date *</FieldLabel>
+                      <input
+                        name="movementDate"
+                        className={fieldClass}
+                        type="date"
+                        required
+                        defaultValue={new Date().toISOString().slice(0, 10)}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>RFQ number</FieldLabel>
+                      <input
+                        name="rfq"
+                        className={fieldClass}
+                        placeholder="e.g. RFQ-2026-019"
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel>Item *</FieldLabel>
+                      <select
+                        name="itemRfq"
+                        className={fieldClass}
+                        required
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          {items.length ? "Select an item" : "Loading items…"}
+                        </option>
+                        {items.map((it) => (
+                          <option key={it.id} value={it.rfq}>
+                            {it.rfq} — {it.name} (in stock: {it.currentStock} {it.unit.label})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <FieldLabel>Quantity *</FieldLabel>
+                      <input
+                        name="qty"
+                        className={fieldClass}
+                        type="number"
+                        step="any"
+                        min={0.001}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Unit *</FieldLabel>
+                      <select
+                        name="unitCode"
+                        className={fieldClass}
+                        required
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          {lookups ? "Select a unit" : "Loading units…"}
+                        </option>
+                        {lookups?.units.map((u) => (
+                          <option key={u.id} value={u.code}>
+                            {u.label}
+                            {u.symbol ? ` (${u.symbol})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <FieldLabel>Project *</FieldLabel>
+                      <select
+                        name="projectWbs"
+                        className={fieldClass}
+                        required
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          {projects.length ? "Select a project" : "Loading projects…"}
+                        </option>
+                        {projects.map((p) => (
+                          <option key={p.id} value={p.wbs}>
+                            {p.wbs} — {p.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <FieldLabel>Department</FieldLabel>
+                      <select name="departmentCode" className={fieldClass} defaultValue="">
+                        <option value="">—</option>
+                        {lookups?.departments.map((d) => (
+                          <option key={d.id} value={d.code}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <FieldLabel>Activity</FieldLabel>
+                      <input
+                        name="activity"
+                        className={fieldClass}
+                        placeholder="e.g. Foundation works"
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel>Issued to (email)</FieldLabel>
+                      <input
+                        name="issuedToEmail"
+                        type="email"
+                        className={fieldClass}
+                        placeholder="receiver@example.com"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <FieldLabel>Authorised by (email)</FieldLabel>
+                      <input
+                        name="authorisedByEmail"
+                        type="email"
+                        className={fieldClass}
+                        placeholder="approver@example.com"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3">
+                      <FieldLabel>Notes / remarks</FieldLabel>
+                      <textarea
+                        name="notes"
+                        rows={3}
+                        className={`${fieldClass} resize-none`}
+                      />
+                    </div>
+
+                    <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-3">
+                      <button
+                        type="button"
+                        onClick={close}
+                        className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="rounded-full bg-linear-to-r from-sky-400 to-cyan-400 px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-sky-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submitting ? "Saving…" : "Save MRN"}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>

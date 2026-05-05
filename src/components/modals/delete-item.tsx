@@ -3,16 +3,23 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle, Trash2, X } from "lucide-react";
-import type { Item } from "@/types/inventory";
+import type { ApiItem } from "@/types/items";
+
+const STATUS_LABEL: Record<ApiItem["status"], string> = {
+  in_stock: "In stock",
+  low:      "Low",
+  critical: "Critical",
+  out:      "Out",
+};
 
 export default function DeleteItemDialog({
   item,
   onClose,
   onConfirm,
 }: {
-  item: Item | null;
+  item: ApiItem | null;
   onClose: () => void;
-  onConfirm: (item: Item) => void;
+  onConfirm: (item: ApiItem) => void;
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -72,30 +79,22 @@ export default function DeleteItemDialog({
 
           <div className="mx-6 my-4 grid grid-cols-2 gap-3 rounded-xl border border-white/8 bg-white/3 p-4 text-xs">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                RFQ
-              </p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">RFQ</p>
               <p className="mt-1 font-mono text-white/85">{item.rfq}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                Category
-              </p>
-              <p className="mt-1 text-white/85">{item.category}</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">Category</p>
+              <p className="mt-1 text-white/85">{item.category.label}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                On hand
-              </p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">On hand</p>
               <p className="mt-1 font-mono text-white/85">
-                {item.current.toLocaleString()} {item.unit}
+                {item.currentStock.toLocaleString()} {item.unit.label}
               </p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
-                Status
-              </p>
-              <p className="mt-1 text-white/85">{item.statusLabel}</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">Status</p>
+              <p className="mt-1 text-white/85">{STATUS_LABEL[item.status]}</p>
             </div>
           </div>
 

@@ -70,8 +70,8 @@ export default function MaintenancePage() {
         subtitle="Unified ledger of every maintenance part moving in and out — by site, technician, and application."
         actions={
           <>
-            <AddStockInDialog />
-            <AddStockOutDialog />
+            <AddStockInDialog onCreated={refetch} />
+            <AddStockOutDialog onCreated={refetch} />
           </>
         }
       />

@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonOk, requireUser, withApi } from "@/lib/api";
 
@@ -18,12 +19,15 @@ export const GET = withApi(async (req) => {
   const url = new URL(req.url);
   const severity = url.searchParams.get("severity");
 
+  const whereClause =
+    severity && ["critical", "low", "watch"].includes(severity)
+      ? Prisma.sql`WHERE severity = ${severity}::alert_severity`
+      : Prisma.empty;
+
   const rows = await prisma.$queryRaw<AlertRow[]>`
     SELECT *
     FROM v_reorder_alerts
-    ${severity && ["critical", "low", "watch"].includes(severity)
-      ? prisma.$queryRaw`WHERE severity = ${severity}::alert_severity`
-      : prisma.$queryRaw``}
+    ${whereClause}
     ORDER BY shortfall DESC NULLS LAST, name
   `;
 

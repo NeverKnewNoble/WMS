@@ -15,6 +15,9 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Truck,
+  Building,
+  Warehouse,
 } from "lucide-react";
 
 interface NavItem {
@@ -48,6 +51,14 @@ const SECTIONS: { heading: string; items: NavItem[] }[] = [
     items: [
       { label: "Projects", href: "/portal/projects", icon: FolderKanban },
       { label: "Maintenance", href: "/portal/maintenance", icon: Wrench },
+    ],
+  },
+  {
+    heading: "Reference",
+    items: [
+      { label: "Suppliers", href: "/portal/suppliers", icon: Truck },
+      { label: "Departments", href: "/portal/departments", icon: Building },
+      { label: "Storage Locations", href: "/portal/storage-locations", icon: Warehouse },
     ],
   },
   {

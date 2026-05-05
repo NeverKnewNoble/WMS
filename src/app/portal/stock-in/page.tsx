@@ -49,7 +49,7 @@ export default function StockInPage() {
             <ToolbarButton variant="ghost">
               <Upload className="h-4 w-4" /> Upload Excel
             </ToolbarButton>
-            <AddStockInDialog />
+            <AddStockInDialog onCreated={refetch} />
           </>
         }
       />
