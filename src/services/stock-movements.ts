@@ -4,8 +4,12 @@ import type {
   MovementRow,
   MovementsListResponse,
 } from "@/types/stock-movements";
+import type { ImportSummary } from "@/types/import";
 import { ApiError, http, qs } from "./http";
 import { failWithToast } from "./toast";
+import { triggerBlobDownload, postFileForJson } from "./download";
+
+export type MovementDirection = "in" | "out";
 
 export async function listMovements(query: ListMovementsQuery = {}): Promise<MovementsListResponse> {
   try {
@@ -63,4 +67,30 @@ export async function createMovement(payload: CreateMovementPayload): Promise<Mo
   } catch (err) {
     failWithToast(err, "Could not record movement");
   }
+}
+
+// ─── Excel template / import ────────────────────────────────────────
+
+/** Download the bulk-import template for either GRN (in) or MRN (out) flows. */
+export async function downloadMovementsTemplate(direction: MovementDirection): Promise<void> {
+  try {
+    const res = await fetch(`/api/stock-movements/template?direction=${direction}`, {
+      credentials: "same-origin",
+    });
+    if (!res.ok) throw new Error(`Template download failed (${res.status})`);
+    const filename = direction === "in" ? "stock-in-template.xlsx" : "stock-out-template.xlsx";
+    triggerBlobDownload(await res.blob(), filename);
+  } catch (err) {
+    failWithToast(err, "Could not download template");
+  }
+}
+
+export async function importMovementsExcel(
+  direction: MovementDirection,
+  file: File,
+): Promise<ImportSummary> {
+  return postFileForJson<ImportSummary>(
+    `/api/stock-movements/import?direction=${direction}`,
+    file,
+  );
 }

@@ -5,8 +5,10 @@ import type {
   ListItemsQuery,
   UpdateItemPayload,
 } from "@/types/items";
+import type { ImportSummary } from "@/types/import";
 import { http, qs } from "./http";
 import { failWithToast } from "./toast";
+import { triggerBlobDownload, postFileForJson } from "./download";
 
 export async function listItems(query: ListItemsQuery = {}): Promise<ItemsListResponse> {
   try {
@@ -46,4 +48,22 @@ export async function deleteItem(id: string): Promise<{ id: string }> {
   } catch (err) {
     failWithToast(err, "Could not delete item");
   }
+}
+
+// ─── Excel template / import ────────────────────────────────────────
+
+/** Trigger a browser download of the items import template. */
+export async function downloadItemsTemplate(): Promise<void> {
+  try {
+    const res = await fetch("/api/items/template", { credentials: "same-origin" });
+    if (!res.ok) throw new Error(`Template download failed (${res.status})`);
+    triggerBlobDownload(await res.blob(), "items-template.xlsx");
+  } catch (err) {
+    failWithToast(err, "Could not download template");
+  }
+}
+
+/** Upload an .xlsx file to the items bulk-import endpoint. */
+export async function importItemsExcel(file: File): Promise<ImportSummary> {
+  return postFileForJson<ImportSummary>("/api/items/import", file);
 }

@@ -1,17 +1,22 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Search, Trash2, Upload } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import {
   PageHeader,
   Surface,
   MonoCell,
   fieldClass,
-  ToolbarButton,
 } from "@/components/ui_components/portal/primitives";
 import AddStockOutDialog from "@/components/modals/add-stock-out";
 import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
-import { listMovements, deleteMovement } from "@/services/stock-movements";
+import ExcelImportPanel from "@/components/excel/excel-import-panel";
+import {
+  listMovements,
+  deleteMovement,
+  downloadMovementsTemplate,
+  importMovementsExcel,
+} from "@/services/stock-movements";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
 import type { MovementRow } from "@/types/stock-movements";
@@ -45,9 +50,12 @@ export default function StockOutPage() {
         subtitle="Issue materials to projects and capture the full chain of authorisation."
         actions={
           <>
-            <ToolbarButton variant="ghost">
-              <Upload className="h-4 w-4" /> Upload Excel
-            </ToolbarButton>
+            <ExcelImportPanel
+              entityLabel="MRNs"
+              onDownload={() => downloadMovementsTemplate("out")}
+              onImport={(file) => importMovementsExcel("out", file)}
+              onImported={refetch}
+            />
             <AddStockOutDialog onCreated={refetch} />
           </>
         }

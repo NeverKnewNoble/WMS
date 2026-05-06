@@ -1,18 +1,23 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Search, Trash2, Upload } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import {
   PageHeader,
   Surface,
   StatusPill,
   MonoCell,
   fieldClass,
-  ToolbarButton,
 } from "@/components/ui_components/portal/primitives";
 import AddStockInDialog from "@/components/modals/add-stock-in";
 import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
-import { listMovements, deleteMovement } from "@/services/stock-movements";
+import ExcelImportPanel from "@/components/excel/excel-import-panel";
+import {
+  listMovements,
+  deleteMovement,
+  downloadMovementsTemplate,
+  importMovementsExcel,
+} from "@/services/stock-movements";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
 import type { MovementRow } from "@/types/stock-movements";
@@ -46,9 +51,12 @@ export default function StockInPage() {
         subtitle="Track every incoming material delivery — supplier, quantity, condition, and chain of custody."
         actions={
           <>
-            <ToolbarButton variant="ghost">
-              <Upload className="h-4 w-4" /> Upload Excel
-            </ToolbarButton>
+            <ExcelImportPanel
+              entityLabel="GRNs"
+              onDownload={() => downloadMovementsTemplate("in")}
+              onImport={(file) => importMovementsExcel("in", file)}
+              onImported={refetch}
+            />
             <AddStockInDialog onCreated={refetch} />
           </>
         }

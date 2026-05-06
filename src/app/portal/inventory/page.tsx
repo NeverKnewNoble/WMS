@@ -1,20 +1,25 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Search, Upload, Pencil, Trash2 } from "lucide-react";
+import { Search, Pencil, Trash2 } from "lucide-react";
 import {
   PageHeader,
   Surface,
   StatusPill,
   MonoCell,
   fieldClass,
-  ToolbarButton,
   type StatusTone,
 } from "@/components/ui_components/portal/primitives";
 import AddItemDialog from "@/components/modals/add-item";
 import EditItemDialog from "@/components/modals/edit-item";
 import DeleteItemDialog from "@/components/modals/delete-item";
-import { listItems, deleteItem } from "@/services/items";
+import ExcelImportPanel from "@/components/excel/excel-import-panel";
+import {
+  listItems,
+  deleteItem,
+  downloadItemsTemplate,
+  importItemsExcel,
+} from "@/services/items";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
 import type { ApiItem } from "@/types/items";
@@ -62,9 +67,12 @@ export default function InventoryPage() {
         subtitle="Manage every SKU in your warehouse — categories, thresholds, and stock levels."
         actions={
           <>
-            <ToolbarButton variant="ghost">
-              <Upload className="h-4 w-4" /> Upload Excel
-            </ToolbarButton>
+            <ExcelImportPanel
+              entityLabel="items"
+              onDownload={downloadItemsTemplate}
+              onImport={importItemsExcel}
+              onImported={refetch}
+            />
             <AddItemDialog onCreated={refetch} />
           </>
         }
