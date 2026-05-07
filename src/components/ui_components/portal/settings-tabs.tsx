@@ -101,7 +101,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
     <Surface className="p-6 sm:p-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-sky-400/30 to-emerald-400/20 text-xl font-semibold text-white ring-1 ring-inset ring-white/10">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-brand-orange/25 to-brand-orange/5 text-xl font-semibold text-white ring-1 ring-inset ring-white/10">
             {user.initials}
           </div>
           <div>
@@ -231,8 +231,8 @@ function NotificationsTab({
   return (
     <Surface className="p-6 sm:p-8">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-400/10 ring-1 ring-inset ring-sky-400/25">
-          <Bell className="h-5 w-5 text-sky-300" />
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-orange/10 ring-1 ring-inset ring-brand-orange/30">
+          <Bell className="h-5 w-5 text-brand-orange-bright" />
         </span>
         <div>
           <h2 className="text-base font-semibold text-white">
@@ -263,7 +263,7 @@ function NotificationsTab({
               className={clsx(
                 "relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition",
                 t.enabled
-                  ? "bg-linear-to-r from-sky-400 to-emerald-400"
+                  ? "bg-linear-to-r from-brand-orange to-brand-orange-bright"
                   : "bg-white/10 hover:bg-white/15",
               )}
             >

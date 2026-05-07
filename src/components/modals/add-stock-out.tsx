@@ -110,7 +110,7 @@ export default function AddStockOutDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-sky-400 to-cyan-400 px-5 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-sky-500/20 transition hover:brightness-110"
+        className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-brand-orange to-brand-orange-bright px-5 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-brand-orange-deep/30 transition hover:brightness-110"
       >
         <Plus className="h-4 w-4" /> Record Stock Out
       </button>
@@ -127,7 +127,7 @@ export default function AddStockOutDialog({
             />
             <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-8">
               <div className="relative flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/12 bg-zinc-900 shadow-2xl shadow-black/60 ring-1 ring-inset ring-white/5">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-sky-400/40 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-orange/40 to-transparent" />
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/8 px-6 pb-5 pt-6">
                   <div>
                     <h2 className="text-lg font-semibold tracking-tight text-white">
@@ -304,7 +304,7 @@ export default function AddStockOutDialog({
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="rounded-full bg-linear-to-r from-sky-400 to-cyan-400 px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-sky-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-full bg-linear-to-r from-brand-orange to-brand-orange-bright px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-brand-orange-deep/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {submitting ? "Saving…" : "Save MRN"}
                       </button>

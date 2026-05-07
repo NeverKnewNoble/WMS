@@ -21,7 +21,7 @@ export default function DashboardPage() {
       <PageHeader
         eyebrow={`Today · ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
         title="Operations dashboard"
-        subtitle="A live read on inventory, project consumption, and warehouse throughput."
+        subtitle="A live read on inventory, project consumption, and site throughput across Joshob Construction."
       />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -29,9 +29,9 @@ export default function DashboardPage() {
           label="Total items in stock"
           value={kpis ? kpis.totalInStock.toLocaleString() : loading ? "…" : "—"}
           sub="across all storage locations"
-          accent="from-sky-400/30 to-sky-400/0"
+          accent="from-brand-orange/30 to-brand-orange/0"
           icon={Boxes}
-          iconClass="text-sky-300"
+          iconClass="text-brand-orange-bright"
         />
         <KpiCard
           label="Items below reorder"
@@ -113,7 +113,7 @@ export default function DashboardPage() {
             </h2>
             <a
               href="/portal/reorder-alerts"
-              className="inline-flex items-center gap-1 text-xs font-medium text-sky-300 hover:text-sky-200"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand-orange transition hover:text-brand-orange-bright"
             >
               Reorder alerts <ArrowUpRight className="h-3.5 w-3.5" />
             </a>

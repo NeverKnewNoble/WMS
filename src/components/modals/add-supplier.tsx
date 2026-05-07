@@ -82,10 +82,10 @@ export default function AddSupplierDialog({
             />
             <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-8">
               <div className="relative flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/12 bg-zinc-900 shadow-2xl shadow-black/60 ring-1 ring-inset ring-white/5">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-sky-400/40 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-orange/40 to-transparent" />
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/8 px-6 pb-5 pt-6">
                   <div>
-                    <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-sky-300/80">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-brand-orange/85">
                       Reference
                     </p>
                     <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
@@ -165,7 +165,7 @@ export default function AddSupplierDialog({
                           name="isActive"
                           type="checkbox"
                           defaultChecked
-                          className="h-4 w-4 rounded border-white/20 bg-white/10 accent-sky-400"
+                          className="h-4 w-4 rounded border-white/20 bg-white/10 accent-brand-orange"
                         />
                         Active
                       </label>

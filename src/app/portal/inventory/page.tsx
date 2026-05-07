@@ -64,7 +64,7 @@ export default function InventoryPage() {
       <PageHeader
         eyebrow="Inventory"
         title="Item registry"
-        subtitle="Manage every SKU in your warehouse — categories, thresholds, and stock levels."
+        subtitle="Every SKU on every site — categories, reorder thresholds, and live stock levels."
         actions={
           <>
             <ExcelImportPanel
@@ -167,7 +167,7 @@ export default function InventoryPage() {
                           type="button"
                           onClick={() => setEditing(it)}
                           aria-label={`Edit ${it.name}`}
-                          className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-sky-300"
+                          className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-brand-orange-bright"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>

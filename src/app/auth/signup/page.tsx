@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { JoshobWordmark } from "@/components/ui_components/wordmark";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -64,38 +65,27 @@ export default function SignupPage() {
           sizes="50vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-linear-to-br from-zinc-950/90 via-zinc-950/60 to-zinc-950/30" />
+        <div className="absolute inset-0 bg-linear-to-br from-zinc-950/95 via-zinc-950/70 to-zinc-950/40" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(226,107,26,0.18),transparent_55%)]" />
+
+        <div
+          aria-hidden
+          className="bg-hazard pointer-events-none absolute -right-4 top-16 h-1.5 w-44 rotate-[-8deg] opacity-90 shadow-[0_8px_24px_rgba(226,107,26,0.25)]"
+        />
 
         <div className="relative z-10 flex h-full flex-col justify-between p-12">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-sky-400 to-emerald-400 text-zinc-950">
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 7 12 3l9 4v10l-9 4-9-4V7z" />
-                <path d="M3 7 12 11l9-4" />
-                <path d="M12 11v10" />
-              </svg>
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              Warehouse MS
-            </span>
+          <Link href="/" aria-label="Joshob Construction Co. Ltd." className="inline-flex w-fit">
+            <JoshobWordmark size="md" />
           </Link>
 
           <ul className="space-y-4 text-sm text-white/80">
             {[
-              "Track every stock-in and stock-out in real time",
-              "Reorder alerts before low stock costs you a sale",
-              "Reports your team will actually open",
+              "Every GRN, MRN, and site issue logged in real time",
+              "Reorder alerts before a project hits a stockout",
+              "Reports your QS and PM will actually open",
             ].map((line) => (
               <li key={line} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-300">
+                <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-orange/20 text-brand-orange-bright ring-1 ring-inset ring-brand-orange/30">
                   <svg
                     className="h-3 w-3"
                     viewBox="0 0 12 12"
@@ -135,11 +125,14 @@ export default function SignupPage() {
             Back to home
           </Link>
 
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brand-orange">
+            Joshob Construction
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             Create your account
           </h1>
           <p className="mt-2 text-sm text-white/60">
-            Start running your warehouse on a single source of truth.
+            One source of truth for stock, sites, and project consumption.
           </p>
 
           <form className="mt-10 space-y-5" onSubmit={onSubmit}>
@@ -158,7 +151,7 @@ export default function SignupPage() {
                 placeholder="Ada Lovelace"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-sky-400/40 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
             </div>
 
@@ -177,7 +170,7 @@ export default function SignupPage() {
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-sky-400/40 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
             </div>
 
@@ -197,7 +190,7 @@ export default function SignupPage() {
                 placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-sky-400/40 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
             </div>
 
@@ -234,7 +227,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/20 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-full bg-brand-orange px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-orange-deep/40 ring-1 ring-inset ring-white/10 transition hover:bg-brand-orange-bright disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? "Creating account…" : "Create account"}
             </button>
@@ -244,7 +237,7 @@ export default function SignupPage() {
             Already have an account?{" "}
             <Link
               href="/auth/login"
-              className="font-medium text-white transition hover:text-sky-300"
+              className="font-medium text-white transition hover:text-brand-orange-bright"
             >
               Sign in
             </Link>

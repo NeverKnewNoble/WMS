@@ -97,7 +97,7 @@ export default function ReportViewerDialog({
       />
       <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-8">
         <div className="relative flex max-h-full w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/12 bg-zinc-900 shadow-2xl shadow-black/60 ring-1 ring-inset ring-white/5">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-sky-400/40 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-orange/40 to-transparent" />
 
           {/* HEADER */}
           <div className="relative shrink-0 overflow-hidden border-b border-white/8 px-6 pb-5 pt-6 sm:px-8">
@@ -112,7 +112,7 @@ export default function ReportViewerDialog({
                   <Icon className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-sky-300/80">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-brand-orange/85">
                     Insights · Report
                   </p>
                   <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">

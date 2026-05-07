@@ -33,31 +33,42 @@ export type ReferenceTab = {
 export function buildTemplateWorkbook(opts: {
   sheetName: string;
   columns: TemplateColumn[];
-  /** Notes inserted as a "READ ME" sheet — first thing users see. */
+  /** Background notes — appear on a secondary "READ ME" tab. */
   notes?: string[];
-  /** Each reference tab becomes a hidden-friendly lookup sheet. */
+  /** Lookup tabs (Categories, Units, etc.) appended after READ ME. */
   references?: ReferenceTab[];
 }): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
+  // ── Data sheet FIRST so Excel opens straight to the column headers. ──
+  const headerRow = opts.columns.map((c) => c.key);
+  const sampleRow = opts.columns.map((c) => c.sample ?? "");
+  const dataSheet = XLSX.utils.aoa_to_sheet([headerRow, sampleRow]);
+  dataSheet["!cols"] = opts.columns.map((c) => ({ wch: c.width ?? 18 }));
+  XLSX.utils.book_append_sheet(wb, dataSheet, opts.sheetName);
+
   if (opts.notes?.length) {
-    const noteRows = opts.notes.map((line) => [line]);
-    const ws = XLSX.utils.aoa_to_sheet([["Instructions"], [], ...noteRows]);
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["Instructions"],
+      [],
+      ...opts.notes.map((line) => [line]),
+    ]);
     ws["!cols"] = [{ wch: 100 }];
     XLSX.utils.book_append_sheet(wb, ws, "READ ME");
   }
-
-  const headerRow  = opts.columns.map((c) => c.key);
-  const sampleRow  = opts.columns.map((c) => c.sample ?? "");
-  const dataSheet  = XLSX.utils.aoa_to_sheet([headerRow, sampleRow]);
-  dataSheet["!cols"] = opts.columns.map((c) => ({ wch: c.width ?? 18 }));
-  XLSX.utils.book_append_sheet(wb, dataSheet, opts.sheetName);
 
   for (const ref of opts.references ?? []) {
     const ws = XLSX.utils.aoa_to_sheet([ref.headers, ...ref.rows]);
     ws["!cols"] = ref.headers.map(() => ({ wch: 24 }));
     XLSX.utils.book_append_sheet(wb, ws, ref.name);
   }
+
+  // Pin the data tab as the active one. xlsx's TypeScript surface doesn't
+  // expose `activeTab` on WBView, but the underlying writer honors it on
+  // the workbook view, so we attach it via a cast.
+  wb.Workbook = wb.Workbook ?? {};
+  wb.Workbook.Views = [{ RTL: false } as XLSX.WBView & { activeTab: number }];
+  (wb.Workbook.Views[0] as { activeTab: number }).activeTab = 0;
 
   return wb;
 }

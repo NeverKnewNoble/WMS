@@ -136,7 +136,7 @@ export default function ProjectDetailsDialog({
 
       <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-8">
         <div className="relative flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/12 bg-zinc-900 shadow-2xl shadow-black/60 ring-1 ring-inset ring-white/5">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-sky-400/40 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-orange/40 to-transparent" />
 
           {/* HERO */}
           <div className="relative shrink-0 overflow-hidden border-b border-white/8 px-6 pb-6 pt-6 sm:px-8">
@@ -149,7 +149,7 @@ export default function ProjectDetailsDialog({
                   {project.wbs}
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-sky-300/80">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-brand-orange/85">
                     Project · WBS {project.wbs}
                   </p>
                   <h2 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
@@ -185,7 +185,7 @@ export default function ProjectDetailsDialog({
             {/* KPI ROW */}
             <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <KpiTile
-                icon={<Boxes className="h-4 w-4 text-sky-300" />}
+                icon={<Boxes className="h-4 w-4 text-brand-orange-bright" />}
                 label="Items issued"
                 value={project.itemsIssued.toString()}
                 sub="distinct SKUs"
@@ -245,7 +245,7 @@ export default function ProjectDetailsDialog({
                       </div>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
                         <div
-                          className="h-full rounded-full bg-linear-to-r from-sky-400/80 via-sky-300 to-emerald-300/80"
+                          className="h-full rounded-full bg-linear-to-r from-brand-orange via-brand-orange-bright to-brand-orange"
                           style={{ width: `${(m.qty / m.max) * 100}%` }}
                         />
                       </div>
@@ -302,7 +302,7 @@ export default function ProjectDetailsDialog({
                     </h3>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-300/90 transition hover:text-sky-200"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-orange-bright/90 transition hover:text-brand-orange-bright"
                     >
                       View all <ExternalLink className="h-3 w-3" />
                     </button>
@@ -404,7 +404,7 @@ function KpiTile({
       {typeof progress === "number" && (
         <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/5">
           <div
-            className="h-full rounded-full bg-linear-to-r from-cyan-400 to-sky-300"
+            className="h-full rounded-full bg-linear-to-r from-brand-orange to-brand-orange-bright"
             style={{ width: `${progress}%` }}
           />
         </div>

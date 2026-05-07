@@ -3,8 +3,8 @@ import PortalSidebar from "@/components/ui_components/portal/sidebar";
 import { getSessionUserOrRedirect, initialsFor } from "@/lib/user";
 
 export const metadata: Metadata = {
-  title: "Warehouse MS — Portal",
-  description: "Warehouse management portal",
+  title: "Joshob Construction — Portal",
+  description: "Operations portal for Joshob Construction Co. Ltd.",
 };
 
 export default async function PortalLayout({
@@ -25,8 +25,8 @@ export default async function PortalLayout({
       />
 
       <main className="relative flex-1 overflow-y-auto">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.07),transparent_50%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(16,185,129,0.05),transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(226,107,26,0.09),transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,122,46,0.04),transparent_55%)]" />
         <div className="relative">{children}</div>
       </main>
     </div>

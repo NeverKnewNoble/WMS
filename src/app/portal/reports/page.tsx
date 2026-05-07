@@ -26,7 +26,7 @@ export default function ReportsPage() {
           <Surface
             key={r.title}
             className={`group overflow-hidden p-6 transition hover:bg-white/3 ${
-              r.active ? "ring-1 ring-inset ring-sky-400/30" : ""
+              r.active ? "ring-1 ring-inset ring-brand-orange/30" : ""
             }`}
           >
             <div

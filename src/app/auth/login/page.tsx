@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Suspense, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { JoshobWordmark } from "@/components/ui_components/wordmark";
 
 export default function LoginPage() {
   return (
@@ -53,37 +54,27 @@ function LoginForm() {
           sizes="50vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-linear-to-br from-zinc-950/90 via-zinc-950/60 to-zinc-950/30" />
+        <div className="absolute inset-0 bg-linear-to-br from-zinc-950/95 via-zinc-950/70 to-zinc-950/40" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(226,107,26,0.18),transparent_55%)]" />
+
+        {/* Hazard-stripe accent — a single signature element. */}
+        <div
+          aria-hidden
+          className="bg-hazard pointer-events-none absolute -right-4 top-16 h-1.5 w-44 rotate-[-8deg] opacity-90 shadow-[0_8px_24px_rgba(226,107,26,0.25)]"
+        />
 
         <div className="relative z-10 flex h-full flex-col justify-between p-12">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-sky-400 to-emerald-400 text-zinc-950">
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 7 12 3l9 4v10l-9 4-9-4V7z" />
-                <path d="M3 7 12 11l9-4" />
-                <path d="M12 11v10" />
-              </svg>
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              Warehouse MS
-            </span>
+          <Link href="/" aria-label="Joshob Construction Co. Ltd." className="inline-flex w-fit">
+            <JoshobWordmark size="md" />
           </Link>
 
           <blockquote className="max-w-md">
             <p className="text-2xl font-medium leading-relaxed text-white">
-              &ldquo;Stock counts went from a Friday-night chore to a number we
-              trust every hour of the day.&rdquo;
+              &ldquo;Every bag of cement, every length of rebar — accounted for
+              before the truck leaves the gate.&rdquo;
             </p>
             <footer className="mt-4 text-sm text-white/60">
-              — Operations Lead, Acme Distribution
+              — Site Engineer, Joshob Construction Co. Ltd.
             </footer>
           </blockquote>
         </div>
@@ -109,11 +100,14 @@ function LoginForm() {
             Back to home
           </Link>
 
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-brand-orange">
+            Joshob Construction
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-white/60">
-            Sign in to keep tabs on your warehouse.
+            Sign in to manage stock, sites, and project consumption.
           </p>
 
           <form className="mt-10 space-y-5" onSubmit={onSubmit}>
@@ -129,10 +123,10 @@ function LoginForm() {
                 type="email"
                 autoComplete="email"
                 required
-                placeholder="you@company.com"
+                placeholder="you@joshobconstruction.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-sky-400/40 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
             </div>
 
@@ -146,7 +140,7 @@ function LoginForm() {
                 </label>
                 <a
                   href="#"
-                  className="text-xs text-sky-300 transition hover:text-sky-200"
+                  className="text-xs text-brand-orange transition hover:text-brand-orange-bright"
                 >
                   Forgot?
                 </a>
@@ -159,7 +153,7 @@ function LoginForm() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-sky-400/40 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
             </div>
 
@@ -183,7 +177,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-zinc-900 shadow-lg shadow-black/20 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-full bg-brand-orange px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-orange-deep/40 ring-1 ring-inset ring-white/10 transition hover:bg-brand-orange-bright disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? "Signing in…" : "Sign in"}
             </button>
@@ -193,7 +187,7 @@ function LoginForm() {
             New here?{" "}
             <Link
               href="/auth/signup"
-              className="font-medium text-white transition hover:text-sky-300"
+              className="font-medium text-white transition hover:text-brand-orange-bright"
             >
               Create an account
             </Link>

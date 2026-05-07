@@ -87,32 +87,43 @@ export const GET = withApi(async (req) => {
 
   const sampleItem = items[0]?.rfq ?? "RFQ-001";
   const sampleUnit = units[0]?.code ?? "bag";
+  const today      = new Date().toISOString().slice(0, 10);
 
-  const sharedCols: TemplateColumn[] = [
-    { key: "refNo",        width: 14, sample: direction === "in" ? "GRN-2026-001" : "MRN-2026-001" },
-    { key: "movementDate", width: 14, sample: new Date().toISOString().slice(0, 10) },
-    { key: "itemRfq",      width: 14, sample: sampleItem },
-    { key: "qty",          width: 10, sample: 25 },
-    { key: "unitCode",     width: 12, sample: sampleUnit },
-    { key: "rfq",          width: 14, sample: "" },
-    { key: "departmentCode", width: 16, sample: departments[0]?.code ?? "" },
-    { key: "notes",        width: 30, sample: "" },
-  ];
+  // Column order mirrors the visible columns on the Stock In / Stock Out
+  // pages so users see the same shape they're used to from the table.
 
+  // Stock In page columns: GRN · Date · Item · Qty · Unit · Supplier · RFQ ·
+  //                         Dept · Project (WBS) · Received by · Condition
   const inCols: TemplateColumn[] = [
-    ...sharedCols,
-    { key: "supplierName",         width: 28, sample: suppliers[0]?.name ?? "" },
-    { key: "storageLocationCode",  width: 20, sample: storage[0]?.code ?? "" },
-    { key: "receivedByEmail",      width: 28, sample: users[0]?.email ?? "" },
-    { key: "condition",            width: 12, sample: "good" },
+    { key: "refNo",               width: 16, sample: "GRN-2026-001" },
+    { key: "movementDate",        width: 14, sample: today },
+    { key: "itemRfq",             width: 14, sample: sampleItem },
+    { key: "qty",                 width: 10, sample: 25 },
+    { key: "unitCode",            width: 12, sample: sampleUnit },
+    { key: "supplierName",        width: 28, sample: suppliers[0]?.name ?? "" },
+    { key: "rfq",                 width: 14, sample: "" },
+    { key: "departmentCode",      width: 16, sample: departments[0]?.code ?? "" },
+    { key: "storageLocationCode", width: 20, sample: storage[0]?.code ?? "" },
+    { key: "receivedByEmail",     width: 28, sample: users[0]?.email ?? "" },
+    { key: "condition",           width: 12, sample: "good" },
+    { key: "notes",               width: 30, sample: "" },
   ];
 
+  // Stock Out page columns: MRN · Date · Item · Qty · Unit · Project · WBS ·
+  //                          RFQ · Dept · Activity · Issued to · Authorised by
   const outCols: TemplateColumn[] = [
-    ...sharedCols,
-    { key: "projectWbs",        width: 12, sample: projects[0]?.wbs ?? "" },
+    { key: "refNo",             width: 16, sample: "MRN-2026-001" },
+    { key: "movementDate",      width: 14, sample: today },
+    { key: "itemRfq",           width: 14, sample: sampleItem },
+    { key: "qty",               width: 10, sample: 25 },
+    { key: "unitCode",          width: 12, sample: sampleUnit },
+    { key: "projectWbs",        width: 14, sample: projects[0]?.wbs ?? "" },
+    { key: "rfq",               width: 14, sample: "" },
+    { key: "departmentCode",    width: 16, sample: departments[0]?.code ?? "" },
     { key: "activity",          width: 24, sample: "" },
     { key: "issuedToEmail",     width: 28, sample: users[0]?.email ?? "" },
     { key: "authorisedByEmail", width: 28, sample: users[0]?.email ?? "" },
+    { key: "notes",             width: 30, sample: "" },
   ];
 
   const inNotes = [

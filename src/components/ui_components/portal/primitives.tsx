@@ -58,7 +58,7 @@ export function PageHeader({
     <div className="flex flex-col gap-4 border-b border-white/6 pb-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
         {eyebrow && (
-          <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-sky-300/80">
+          <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-brand-orange">
             {eyebrow}
           </p>
         )}
@@ -125,7 +125,7 @@ export function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 export const fieldClass =
-  "mt-1.5 w-full rounded-lg border border-white/12 bg-white/5 px-3 py-2.5 text-sm text-white scheme-dark placeholder:text-white/40 focus:border-sky-400/60 focus:bg-white/8 focus:outline-none focus:ring-2 focus:ring-sky-400/25 disabled:cursor-not-allowed disabled:opacity-50";
+  "mt-1.5 w-full rounded-lg border border-white/12 bg-white/5 px-3 py-2.5 text-sm text-white scheme-dark placeholder:text-white/40 focus:border-brand-orange/60 focus:bg-white/8 focus:outline-none focus:ring-2 focus:ring-brand-orange/30 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function MonoCell({ children }: { children: React.ReactNode }) {
   return (
