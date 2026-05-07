@@ -62,7 +62,7 @@ export default function StockOutPage() {
       />
 
       <Surface className="mt-8 p-4">
-        <div className="grid gap-3 sm:grid-cols-[1fr_180px_180px_180px]">
+        <div className="grid gap-3 sm:grid-cols-[1fr_180px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
             <input
@@ -73,9 +73,6 @@ export default function StockOutPage() {
           <input className={fieldClass} type="date" />
           <select className={fieldClass} defaultValue="All Projects">
             <option>All Projects</option>
-          </select>
-          <select className={fieldClass} defaultValue="All Departments">
-            <option>All Departments</option>
           </select>
         </div>
       </Surface>
@@ -92,10 +89,8 @@ export default function StockOutPage() {
                 <th className="px-6 py-3 font-medium">Unit</th>
                 <th className="px-6 py-3 font-medium">Project</th>
                 <th className="px-6 py-3 font-medium">WBS</th>
-                <th className="px-6 py-3 font-medium">RFQ</th>
-                <th className="px-6 py-3 font-medium">Dept</th>
+                <th className="px-6 py-3 font-medium">Serial</th>
                 <th className="px-6 py-3 font-medium">Activity</th>
-                <th className="px-6 py-3 font-medium">Issued to</th>
                 <th className="px-6 py-3 font-medium">Authorised by</th>
                 <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
@@ -103,13 +98,13 @@ export default function StockOutPage() {
             <tbody>
               {loading && movements.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={11} className="px-6 py-10 text-center text-xs text-white/40">
                     Loading MRNs…
                   </td>
                 </tr>
               ) : movements.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={11} className="px-6 py-10 text-center text-xs text-white/40">
                     No MRNs yet. Click <span className="text-white/70">Add stock out</span> to issue materials.
                   </td>
                 </tr>
@@ -138,10 +133,8 @@ export default function StockOutPage() {
                           <span className="text-white/40">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-3.5"><MonoCell>{m.rfq ?? "—"}</MonoCell></td>
-                      <td className="px-6 py-3.5 text-white/65">{m.department?.label ?? "—"}</td>
+                      <td className="px-6 py-3.5"><MonoCell>{line?.itemRfq ?? "—"}</MonoCell></td>
                       <td className="px-6 py-3.5 text-white/65">{m.activity ?? "—"}</td>
-                      <td className="px-6 py-3.5 text-white/65">{m.issuedTo?.fullName ?? "—"}</td>
                       <td className="px-6 py-3.5 text-white/65">{m.authorisedBy?.fullName ?? "—"}</td>
                       <td className="px-6 py-3.5">
                         <div className="flex justify-end">
@@ -191,7 +184,6 @@ export default function StockOutPage() {
                     ? `${deleting.lines[0].qty} ${deleting.lines[0].unit}`
                     : "—",
                 },
-                { label: "Issued to", value: deleting.issuedTo?.fullName ?? "—" },
               ]
             : undefined
         }

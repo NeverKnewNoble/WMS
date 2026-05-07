@@ -84,7 +84,7 @@ export default function InventoryPage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
             <input
               className={`${fieldClass} pl-9`}
-              placeholder="Search by name or RFQ number..."
+              placeholder="Search by name or serial..."
             />
           </div>
           <select className={fieldClass} defaultValue="All">
@@ -107,7 +107,7 @@ export default function InventoryPage() {
           <table className="w-full min-w-max text-left text-sm">
             <thead>
               <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
-                <th className="px-6 py-3 font-medium">RFQ</th>
+                <th className="px-6 py-3 font-medium">Serial</th>
                 <th className="px-6 py-3 font-medium">Item</th>
                 <th className="px-6 py-3 font-medium">Category</th>
                 <th className="px-6 py-3 font-medium">Unit</th>

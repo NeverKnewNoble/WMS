@@ -41,8 +41,9 @@ export type ItemsListResponse = {
   offset: number;
 };
 
+// Note: `rfq` (the item's serial) is auto-generated server-side and never
+// supplied by the client — it's immutable once an item is created.
 export type CreateItemPayload = {
-  rfq:                  string;
   name:                 string;
   categoryCode:         string;
   unitCode:             string;

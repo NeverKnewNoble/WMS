@@ -67,7 +67,6 @@ export default function EditItemDialog({
 
     try {
       await updateItem(item.id, {
-        rfq:                 get("rfq"),
         name:                get("name"),
         categoryCode:        get("categoryCode"),
         unitCode:            get("unitCode"),
@@ -139,12 +138,13 @@ export default function EditItemDialog({
                 />
               </div>
               <div>
-                <FieldLabel>RFQ number</FieldLabel>
-                <input
-                  name="rfq"
-                  className={fieldClass}
-                  defaultValue={item.rfq}
-                />
+                <FieldLabel>Serial</FieldLabel>
+                <div className="mt-1.5 flex w-full items-center rounded-lg border border-white/10 bg-white/3 px-3 py-2.5">
+                  <span className="font-mono text-sm text-brand-orange/90">{item.rfq}</span>
+                  <span className="ml-auto text-[10px] uppercase tracking-[0.18em] text-white/35">
+                    Auto · immutable
+                  </span>
+                </div>
               </div>
 
               <div>

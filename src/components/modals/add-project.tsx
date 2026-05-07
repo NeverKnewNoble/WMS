@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Plus, X, MapPin, CalendarRange, Hash } from "lucide-react";
+import { Plus, X, MapPin, Hash } from "lucide-react";
 import { FieldLabel, fieldClass } from "../ui_components/portal/primitives";
 import { createProject } from "@/services/projects";
 import { getLookups } from "@/services/lookups";
@@ -67,16 +67,12 @@ export default function AddProjectDialog({
 
     try {
       const project = await createProject({
-        wbs:               get("wbs"),
-        name:              get("name"),
-        location:          get("location"),
-        regionCode:        get("regionCode") || null,
-        managerEmail:      get("managerEmail") || null,
-        status:            (get("status") || "active") as ProjectStatus,
-        startDate:         get("startDate") || null,
-        estimatedEndDate:  get("estimatedEndDate") || null,
-        budget:            numOrNull("budget"),
-        description:       get("description") || null,
+        wbs:        get("wbs"),
+        name:       get("name"),
+        location:   get("location"),
+        regionCode: get("regionCode") || null,
+        status:     (get("status") || "active") as ProjectStatus,
+        budget:     numOrNull("budget"),
       });
       showSuccessToast("Project created", `${project.name} added.`);
       onCreated?.();
@@ -186,46 +182,12 @@ export default function AddProjectDialog({
                     </div>
 
                     <div>
-                      <FieldLabel>Project manager email</FieldLabel>
-                      <input
-                        name="managerEmail"
-                        type="email"
-                        className={fieldClass}
-                        placeholder="manager@example.com"
-                      />
-                    </div>
-
-                    <div>
                       <FieldLabel>Status</FieldLabel>
                       <select name="status" className={fieldClass} defaultValue="active">
                         <option value="active">Active</option>
                         <option value="on_hold">On Hold</option>
                         <option value="completed">Completed</option>
                       </select>
-                    </div>
-
-                    <div>
-                      <FieldLabel>Start date</FieldLabel>
-                      <div className="relative">
-                        <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
-                        <input
-                          name="startDate"
-                          type="date"
-                          className={`${fieldClass} pl-9`}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <FieldLabel>Estimated end date</FieldLabel>
-                      <div className="relative">
-                        <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
-                        <input
-                          name="estimatedEndDate"
-                          type="date"
-                          className={`${fieldClass} pl-9`}
-                        />
-                      </div>
                     </div>
 
                     <div className="sm:col-span-2">
@@ -236,16 +198,6 @@ export default function AddProjectDialog({
                         className={fieldClass}
                         placeholder="0.00"
                         min={0}
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <FieldLabel>Description</FieldLabel>
-                      <textarea
-                        name="description"
-                        rows={3}
-                        className={`${fieldClass} resize-none`}
-                        placeholder="Scope of works, key milestones, special handling..."
                       />
                     </div>
 

@@ -79,7 +79,7 @@ export default function DeleteItemDialog({
 
           <div className="mx-6 my-4 grid grid-cols-2 gap-3 rounded-xl border border-white/8 bg-white/3 p-4 text-xs">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">RFQ</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">Serial</p>
               <p className="mt-1 font-mono text-white/85">{item.rfq}</p>
             </div>
             <div>

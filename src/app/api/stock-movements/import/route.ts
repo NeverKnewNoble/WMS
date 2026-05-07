@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, requireUser, withApi } from "@/lib/api";
 import {
@@ -9,7 +10,10 @@ import {
   type RowError,
 } from "@/lib/excel";
 
-const SHARED_REQUIRED = ["refNo", "movementDate", "itemRfq", "qty", "unitCode"];
+// Reference numbers (refNo) and the line's unit are no longer collected
+// from the sheet — refNo is auto-generated as GRN/MRN-YYYY-NNNN, and the
+// unit is read from the item itself.
+const SHARED_REQUIRED = ["movementDate", "itemRfq", "qty"];
 const IN_REQUIRED  = [...SHARED_REQUIRED, "supplierName"];
 const OUT_REQUIRED = [...SHARED_REQUIRED, "projectWbs"];
 
@@ -44,27 +48,21 @@ const optCondition = z.preprocess(
 );
 
 const baseRow = z.object({
-  refNo:          z.string().min(1).max(64),
-  movementDate:   isoDate,
-  itemRfq:        z.string().min(1),
-  qty:            num,
-  unitCode:       z.string().min(1),
-  rfq:            optStr,
-  departmentCode: optStr,
-  notes:          optStr,
+  movementDate: isoDate,
+  itemRfq:      z.string().min(1),
+  qty:          num,
+  notes:        optStr,
 });
 
 const inRow = baseRow.extend({
   supplierName:        z.string().min(1),
   storageLocationCode: optStr,
-  receivedByEmail:     optEmail,
   condition:           optCondition,
 });
 
 const outRow = baseRow.extend({
   projectWbs:        z.string().min(1),
   activity:          optStr,
-  issuedToEmail:     optEmail,
   authorisedByEmail: optEmail,
 });
 
@@ -100,68 +98,59 @@ export const POST = withApi(async (req) => {
     return jsonError("No data rows found.", 400);
   }
 
-  // Pre-load lookups once so per-row resolution is in-memory.
-  const [items, units, suppliers, projects, departments, storage, users, existingRefs] =
-    await Promise.all([
-      prisma.item.findMany({ where: { deletedAt: null }, select: { id: true, rfq: true } }),
-      prisma.unit.findMany({ select: { id: true, code: true } }),
-      prisma.supplier.findMany({ select: { id: true, name: true } }),
-      prisma.project.findMany({
-        where: { deletedAt: null },
-        select: { id: true, wbs: true },
-      }),
-      prisma.department.findMany({ select: { id: true, code: true } }),
-      prisma.storageLocation.findMany({ select: { id: true, code: true } }),
-      prisma.user.findMany({
-        where: { deletedAt: null },
-        select: { id: true, email: true },
-      }),
-      prisma.stockMovement.findMany({
-        where: { deletedAt: null },
-        select: { refNo: true },
-      }),
-    ]);
+  // Pre-load lookups once so per-row resolution is in-memory. Items now
+  // carry the unit (`unitId`) so we can default the line's unit without a
+  // separate Excel column. We also seed the refNo cursor from the count of
+  // existing year-prefixed movements so each new row gets the next slot.
+  const year       = new Date().getFullYear();
+  const prefix     = direction === "in" ? "GRN" : "MRN";
+  const refPrefix  = `${prefix}-${year}-`;
 
-  const itemByRfq    = new Map(items.map((i) => [i.rfq.toLowerCase(), i.id]));
-  const unitByCode   = new Map(units.map((u) => [u.code.toLowerCase(), u.id]));
+  const [items, suppliers, projects, storage, users, baseRefCount] = await Promise.all([
+    prisma.item.findMany({
+      where: { deletedAt: null },
+      select: { id: true, rfq: true, unitId: true },
+    }),
+    prisma.supplier.findMany({ select: { id: true, name: true } }),
+    prisma.project.findMany({
+      where: { deletedAt: null },
+      select: { id: true, wbs: true },
+    }),
+    prisma.storageLocation.findMany({ select: { id: true, code: true } }),
+    prisma.user.findMany({
+      where: { deletedAt: null },
+      select: { id: true, email: true },
+    }),
+    prisma.stockMovement.count({
+      where: { direction, refNo: { startsWith: refPrefix } },
+    }),
+  ]);
+
+  const itemByRfq    = new Map(items.map((i) => [i.rfq.toLowerCase(), i]));
   const supByName    = new Map(suppliers.map((s) => [s.name.toLowerCase(), s.id]));
   const projByWbs    = new Map(projects.map((p) => [p.wbs.toLowerCase(), p.id]));
-  const deptByCode   = new Map(departments.map((d) => [d.code.toLowerCase(), d.id]));
   const storeByCode  = new Map(storage.map((s) => [s.code.toLowerCase(), s.id]));
   const userByEmail  = new Map(users.map((u) => [u.email.toLowerCase(), u.id]));
-  const usedRefs     = new Set(existingRefs.map((r) => r.refNo.toLowerCase()));
 
-  // ─── Validate every row, then group by refNo ──────────────────────
+  // ─── Validate every row ────────────────────────────────────────────
 
-  type ValidLine = {
+  type Valid = {
     rowNum: number;
+    movementDate: Date;
+    notes: string | null;
     itemId: bigint;
     unitId: bigint;
     qty: number;
     condition: "good" | "damaged" | "partial" | "rejected";
-    note: string | null;
-  };
-
-  type ValidGroup = {
-    rowNum: number; // first row that opened the group, for error attribution
-    refNo: string;
-    movementDate: Date;
-    rfq: string | null;
-    notes: string | null;
-    departmentId: bigint | null;
-    // direction-specific
     supplierId?: bigint;
     storageLocationId?: bigint | null;
-    receivedByUserId?: bigint | null;
     projectId?: bigint;
     activity?: string | null;
-    issuedToUserId?: bigint | null;
     authorisedByUserId?: bigint | null;
-    lines: ValidLine[];
   };
 
   const errors: RowError[] = [];
-  const groups = new Map<string, ValidGroup>();
+  const valid:  Valid[]    = [];
 
   rows.forEach((raw, idx) => {
     const rowNum = idx + 2;
@@ -177,42 +166,21 @@ export const POST = withApi(async (req) => {
     }
     const r = parsed.data;
 
-    const refKey = r.refNo.toLowerCase();
-    if (usedRefs.has(refKey)) {
-      errors.push({ row: rowNum, message: `refNo "${r.refNo}" already exists` });
-      return;
-    }
-
-    const itemId = itemByRfq.get(r.itemRfq.toLowerCase());
-    if (!itemId) {
+    const item = itemByRfq.get(r.itemRfq.toLowerCase());
+    if (!item) {
       errors.push({ row: rowNum, message: `Unknown itemRfq "${r.itemRfq}"` });
       return;
     }
-    const unitId = unitByCode.get(r.unitCode.toLowerCase());
-    if (!unitId) {
-      errors.push({ row: rowNum, message: `Unknown unitCode "${r.unitCode}"` });
-      return;
-    }
 
-    let departmentId: bigint | null = null;
-    if (r.departmentCode) {
-      const did = deptByCode.get(r.departmentCode.toLowerCase());
-      if (!did) {
-        errors.push({ row: rowNum, message: `Unknown departmentCode "${r.departmentCode}"` });
-        return;
-      }
-      departmentId = did;
-    }
-
-    // Direction-specific resolution.
-    let supplierId: bigint | undefined;
-    let storageLocationId: bigint | null | undefined;
-    let receivedByUserId: bigint | null | undefined;
-    let projectId: bigint | undefined;
-    let issuedToUserId: bigint | null | undefined;
-    let authorisedByUserId: bigint | null | undefined;
-    let activity: string | null | undefined;
-    let condition: ValidLine["condition"] = "good";
+    const v: Valid = {
+      rowNum,
+      movementDate: new Date(r.movementDate),
+      notes: r.notes ?? null,
+      itemId: item.id,
+      unitId: item.unitId,
+      qty: r.qty,
+      condition: "good",
+    };
 
     if (direction === "in") {
       const ri = r as z.infer<typeof inRow>;
@@ -221,7 +189,7 @@ export const POST = withApi(async (req) => {
         errors.push({ row: rowNum, message: `Unknown supplier "${ri.supplierName}"` });
         return;
       }
-      supplierId = sid;
+      v.supplierId = sid;
 
       if (ri.storageLocationCode) {
         const slid = storeByCode.get(ri.storageLocationCode.toLowerCase());
@@ -229,19 +197,12 @@ export const POST = withApi(async (req) => {
           errors.push({ row: rowNum, message: `Unknown storageLocationCode "${ri.storageLocationCode}"` });
           return;
         }
-        storageLocationId = slid;
-      } else storageLocationId = null;
+        v.storageLocationId = slid;
+      } else {
+        v.storageLocationId = null;
+      }
 
-      if (ri.receivedByEmail) {
-        const uid = userByEmail.get(ri.receivedByEmail.toLowerCase());
-        if (!uid) {
-          errors.push({ row: rowNum, message: `Unknown receivedByEmail "${ri.receivedByEmail}"` });
-          return;
-        }
-        receivedByUserId = uid;
-      } else receivedByUserId = null;
-
-      if (ri.condition) condition = ri.condition;
+      if (ri.condition) v.condition = ri.condition;
     } else {
       const ro = r as z.infer<typeof outRow>;
       const pid = projByWbs.get(ro.projectWbs.toLowerCase());
@@ -249,17 +210,8 @@ export const POST = withApi(async (req) => {
         errors.push({ row: rowNum, message: `Unknown projectWbs "${ro.projectWbs}"` });
         return;
       }
-      projectId = pid;
-      activity = ro.activity ?? null;
-
-      if (ro.issuedToEmail) {
-        const uid = userByEmail.get(ro.issuedToEmail.toLowerCase());
-        if (!uid) {
-          errors.push({ row: rowNum, message: `Unknown issuedToEmail "${ro.issuedToEmail}"` });
-          return;
-        }
-        issuedToUserId = uid;
-      } else issuedToUserId = null;
+      v.projectId = pid;
+      v.activity  = ro.activity ?? null;
 
       if (ro.authorisedByEmail) {
         const uid = userByEmail.get(ro.authorisedByEmail.toLowerCase());
@@ -267,88 +219,75 @@ export const POST = withApi(async (req) => {
           errors.push({ row: rowNum, message: `Unknown authorisedByEmail "${ro.authorisedByEmail}"` });
           return;
         }
-        authorisedByUserId = uid;
-      } else authorisedByUserId = null;
+        v.authorisedByUserId = uid;
+      } else {
+        v.authorisedByUserId = null;
+      }
     }
 
-    const line: ValidLine = {
-      rowNum,
-      itemId,
-      unitId,
-      qty: r.qty,
-      condition,
-      note: null,
-    };
-
-    const existing = groups.get(refKey);
-    if (existing) {
-      existing.lines.push(line);
-      return;
-    }
-
-    groups.set(refKey, {
-      rowNum,
-      refNo: r.refNo,
-      movementDate: new Date(r.movementDate),
-      rfq: r.rfq ?? null,
-      notes: r.notes ?? null,
-      departmentId,
-      supplierId,
-      storageLocationId,
-      receivedByUserId,
-      projectId,
-      activity,
-      issuedToUserId,
-      authorisedByUserId,
-      lines: [line],
-    });
+    valid.push(v);
   });
 
-  // ─── Insert each grouped movement in a transaction ────────────────
+  // ─── Insert each row as its own movement ───────────────────────────
+  // refNo is auto-generated (GRN/MRN-YYYY-NNNN) and walked forward as we
+  // create. Concurrent imports could collide on the same slot — when that
+  // happens (P2002) we bump the cursor and retry the row.
 
   let created = 0;
-  for (const g of groups.values()) {
-    try {
-      await prisma.stockMovement.create({
-        data: {
-          refNo: g.refNo,
-          direction,
-          kind: "operations", // bulk imports cover ops; maintenance has its own UI flow
-          movementDate: g.movementDate,
-          rfq: g.rfq,
-          notes: g.notes,
-          departmentId: g.departmentId,
-          supplierId: g.supplierId ?? null,
-          storageLocationId: g.storageLocationId ?? null,
-          receivedByUserId: g.receivedByUserId ?? null,
-          projectId: g.projectId ?? null,
-          activity: g.activity ?? null,
-          issuedToUserId: g.issuedToUserId ?? null,
-          authorisedByUserId: g.authorisedByUserId ?? null,
-          createdByUserId: me.id,
-          items: {
-            create: g.lines.map((l) => ({
-              itemId: l.itemId,
-              unitId: l.unitId,
-              qty: l.qty,
-              condition: l.condition,
-              note: l.note,
-            })),
+  let cursor  = baseRefCount;
+  const MAX_RETRIES = 8;
+
+  for (const v of valid) {
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      cursor += 1;
+      const refNo = `${refPrefix}${String(cursor).padStart(4, "0")}`;
+      try {
+        await prisma.stockMovement.create({
+          data: {
+            refNo,
+            direction,
+            kind: "operations", // bulk imports cover ops; maintenance has its own UI flow
+            movementDate: v.movementDate,
+            notes: v.notes,
+            supplierId: v.supplierId ?? null,
+            storageLocationId: v.storageLocationId ?? null,
+            projectId: v.projectId ?? null,
+            activity: v.activity ?? null,
+            authorisedByUserId: v.authorisedByUserId ?? null,
+            createdByUserId: me.id,
+            items: {
+              create: [
+                {
+                  itemId: v.itemId,
+                  unitId: v.unitId,
+                  qty: v.qty,
+                  condition: v.condition,
+                  note: null,
+                },
+              ],
+            },
           },
-        },
-      });
-      created++;
-    } catch (err) {
-      errors.push({
-        row: g.rowNum,
-        message: err instanceof Error ? err.message : "Insert failed",
-      });
+        });
+        created++;
+        break;
+      } catch (err) {
+        const isUniqueViolation =
+          err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+        if (!isUniqueViolation || attempt === MAX_RETRIES - 1) {
+          errors.push({
+            row: v.rowNum,
+            message: err instanceof Error ? err.message : "Insert failed",
+          });
+          break;
+        }
+        // P2002: walk the cursor forward and retry.
+      }
     }
   }
 
   const summary: ImportSummary = {
     created,
-    skipped: groups.size - created,
+    skipped: valid.length - created,
     errors,
   };
   return jsonOk(summary);

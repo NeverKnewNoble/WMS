@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* The app is force-dark across every surface — telling the browser
+     globally lets native UI (select popups, scrollbars, date pickers)
+     paint themselves dark on light-OS machines instead of rendering as
+     unreadable white boxes. */
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* Native <option> popups can't be styled with Tailwind. Force their colours
+   here so dropdown items are readable in every browser. Some engines
+   (Chrome, Edge) honour these properties on <option>; Safari mostly does
+   too. The wider color-scheme above does the rest. */
+option {
+  background-color: #18181b; /* zinc-900 */
+  color: #ffffff;
+}
+option:disabled {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 @theme inline {
@@ -16,13 +33,6 @@
   --color-brand-orange:        #E26B1A;
   --color-brand-orange-bright: #FF7A2E;
   --color-brand-orange-deep:   #B05210;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

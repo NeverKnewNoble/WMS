@@ -66,7 +66,8 @@ export type MovementsListResponse = {
  *   maintenance + *   → siteCode
  */
 export type CreateMovementPayload = {
-  refNo:        string;
+  /** Optional — server auto-generates `GRN-YYYY-NNNN` / `MRN-YYYY-NNNN` when omitted. */
+  refNo?:       string;
   direction:    MovementDirection;
   kind:         MovementKind;
   movementDate: string;                  // ISO date (e.g. "2026-05-02")

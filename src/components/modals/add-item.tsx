@@ -63,7 +63,6 @@ export default function AddItemDialog({
 
     try {
       const item = await createItem({
-        rfq:                 get("rfq"),
         name:                get("name"),
         categoryCode:        get("categoryCode"),
         unitCode:            get("unitCode"),
@@ -73,7 +72,7 @@ export default function AddItemDialog({
         maxStock:            num("maxStock"),
         description:         get("description") || null,
       });
-      showSuccessToast("Item created", `${item.name} added to the registry.`);
+      showSuccessToast("Item created", `${item.name} added as ${item.rfq}.`);
       onCreated?.();
       close();
     } catch {
@@ -129,7 +128,7 @@ export default function AddItemDialog({
                     onSubmit={onSubmit}
                     className="grid grid-cols-1 gap-5 sm:grid-cols-2"
                   >
-                    <div className="sm:col-span-1">
+                    <div className="sm:col-span-2">
                       <FieldLabel>Item name *</FieldLabel>
                       <input
                         name="name"
@@ -137,15 +136,9 @@ export default function AddItemDialog({
                         placeholder="e.g. Cement 50kg"
                         required
                       />
-                    </div>
-                    <div>
-                      <FieldLabel>RFQ number *</FieldLabel>
-                      <input
-                        name="rfq"
-                        className={fieldClass}
-                        placeholder="e.g. RFQ-006"
-                        required
-                      />
+                      <p className="mt-2 text-[11px] text-white/40">
+                        A serial number (e.g. <span className="font-mono text-brand-orange/85">JC-00042</span>) is generated automatically when you save.
+                      </p>
                     </div>
 
                     <div>

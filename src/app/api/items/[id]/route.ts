@@ -29,7 +29,6 @@ export const GET = withApi(async (_req, ctx) => {
 });
 
 const patchSchema = z.object({
-  rfq: z.string().min(1).max(64).optional(),
   name: z.string().min(1).max(200).optional(),
   categoryCode: z.string().optional(),
   unitCode: z.string().optional(),
@@ -43,7 +42,8 @@ const patchSchema = z.object({
 
 // Update an item
 // Endpoint: PATCH /api/items/[id]
-// Description: Update an item
+// Description: Update an item. The serial (`rfq`) is immutable — generated
+// once at creation and never edited.
 
 export const PATCH = withApi(async (req, ctx) => {
   await requireUser();
@@ -52,7 +52,6 @@ export const PATCH = withApi(async (req, ctx) => {
   const body = await parseJson(req, patchSchema);
 
   const data: Record<string, unknown> = {
-    rfq: body.rfq,
     name: body.name,
     reorderLevel: body.reorderLevel,
     minStock: body.minStock,

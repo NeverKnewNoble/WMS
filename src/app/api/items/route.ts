@@ -80,7 +80,6 @@ export const GET = withApi(async (req) => {
 });
 
 const createSchema = z.object({
-  rfq: z.string().min(1).max(64),
   name: z.string().min(1).max(200),
   categoryCode: z.string().min(1),
   unitCode: z.string().min(1),
@@ -93,11 +92,23 @@ const createSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
 });
 
+// Auto-generated serials use the JC-NNNNN format (Joshob Construction).
+// We seed from `count()` rather than MAX(rfq) because legacy/imported items
+// may have non-conforming codes — and counting includes soft-deleted rows
+// so a deleted item's serial is never reused.
+const SERIAL_PREFIX = "JC-";
+const SERIAL_PAD    = 5;
+
+function formatSerial(n: number): string {
+  return `${SERIAL_PREFIX}${String(n).padStart(SERIAL_PAD, "0")}`;
+}
 
 
 // Create a new item
 // Endpoint: POST /api/items
-// Description: Create a new item
+// Description: Create a new item. The item's serial (`rfq` column in the DB,
+// surfaced as "Serial" in the UI) is generated server-side — clients no
+// longer supply it.
 export const POST = withApi(async (req) => {
   await requireUser();
   const body = await parseJson(req, createSchema);
@@ -116,21 +127,35 @@ export const POST = withApi(async (req) => {
     ? await prisma.manufacturer.findUnique({ where: { name: body.manufacturerName } })
     : null;
 
-  const item = await prisma.item.create({
-    data: {
-      rfq: body.rfq,
-      name: body.name,
-      categoryId: category.id,
-      unitId: unit.id,
-      defaultSupplierId: supplier?.id ?? null,
-      manufacturerId: manufacturer?.id ?? null,
-      isMaintenancePart: body.isMaintenancePart ?? false,
-      reorderLevel: body.reorderLevel ?? 0,
-      minStock: body.minStock ?? 0,
-      maxStock: body.maxStock ?? 0,
-      description: body.description ?? null,
-    },
-  });
+  // Retry on unique-violation to absorb the (rare) race where two creates
+  // pick the same next-serial concurrently. Walking forward from `count` +1
+  // self-heals up to MAX_TRIES collisions before giving up.
+  const baseCount = await prisma.item.count();
+  const MAX_TRIES = 8;
+  for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+    try {
+      const item = await prisma.item.create({
+        data: {
+          rfq: formatSerial(baseCount + 1 + attempt),
+          name: body.name,
+          categoryId: category.id,
+          unitId: unit.id,
+          defaultSupplierId: supplier?.id ?? null,
+          manufacturerId: manufacturer?.id ?? null,
+          isMaintenancePart: body.isMaintenancePart ?? false,
+          reorderLevel: body.reorderLevel ?? 0,
+          minStock: body.minStock ?? 0,
+          maxStock: body.maxStock ?? 0,
+          description: body.description ?? null,
+        },
+      });
+      return jsonOk(item, { status: 201 });
+    } catch (err) {
+      const isUniqueViolation =
+        err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+      if (!isUniqueViolation || attempt === MAX_TRIES - 1) throw err;
+    }
+  }
 
-  return jsonOk(item, { status: 201 });
+  return jsonOk({ error: "Could not generate a unique serial" }, { status: 500 });
 });

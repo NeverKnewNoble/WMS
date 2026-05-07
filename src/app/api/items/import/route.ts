@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, requireUser, withApi } from "@/lib/api";
 import {
@@ -9,7 +10,14 @@ import {
   type RowError,
 } from "@/lib/excel";
 
-const REQUIRED_HEADERS = ["rfq", "name", "categoryCode", "unitCode"];
+const REQUIRED_HEADERS = ["name", "categoryCode", "unitCode"];
+
+// Mirrors the auto-serial format used by /api/items POST. Imports walk the
+// counter forward across rows so each new item gets a fresh JC-NNNNN.
+const SERIAL_PREFIX = "JC-";
+const SERIAL_PAD    = 5;
+const formatSerial = (n: number) =>
+  `${SERIAL_PREFIX}${String(n).padStart(SERIAL_PAD, "0")}`;
 
 // Excel cells come in as strings, so we coerce numbers/bools defensively.
 const num = z.preprocess((v) => {
@@ -26,7 +34,6 @@ const bool = z.preprocess((v) => {
 }, z.boolean());
 
 const rowSchema = z.object({
-  rfq:                z.string().min(1).max(64),
   name:               z.string().min(1).max(200),
   categoryCode:       z.string().min(1),
   unitCode:           z.string().min(1),
@@ -64,26 +71,27 @@ export const POST = withApi(async (req) => {
     return jsonError("No data rows found. Did you upload an empty template?", 400);
   }
 
-  // Pre-load lookups once to avoid N round-trips per row.
-  const [cats, units, suppliers, manufacturers, existingRfqs] = await Promise.all([
+  // Pre-load lookups once to avoid N round-trips per row. We also seed the
+  // serial counter from the current item count so each new row gets the next
+  // JC-NNNNN — including soft-deleted rows so a deleted item's serial is
+  // never reused.
+  const [cats, units, suppliers, manufacturers, baseCount] = await Promise.all([
     prisma.category.findMany({ select: { id: true, code: true } }),
     prisma.unit.findMany({ select: { id: true, code: true } }),
     prisma.supplier.findMany({ select: { id: true, name: true } }),
     prisma.manufacturer.findMany({ select: { id: true, name: true } }),
-    prisma.item.findMany({ where: { deletedAt: null }, select: { rfq: true } }),
+    prisma.item.count(),
   ]);
 
-  const catByCode    = new Map(cats.map((c) => [c.code.toLowerCase(), c.id]));
-  const unitByCode   = new Map(units.map((u) => [u.code.toLowerCase(), u.id]));
-  const supByName    = new Map(suppliers.map((s) => [s.name.toLowerCase(), s.id]));
-  const mfgByName    = new Map(manufacturers.map((m) => [m.name.toLowerCase(), m.id]));
-  const usedRfqs     = new Set(existingRfqs.map((r) => r.rfq.toLowerCase()));
+  const catByCode  = new Map(cats.map((c) => [c.code.toLowerCase(), c.id]));
+  const unitByCode = new Map(units.map((u) => [u.code.toLowerCase(), u.id]));
+  const supByName  = new Map(suppliers.map((s) => [s.name.toLowerCase(), s.id]));
+  const mfgByName  = new Map(manufacturers.map((m) => [m.name.toLowerCase(), m.id]));
 
   const errors: RowError[] = [];
   const valid: Array<{
     rowNum: number;
     data: {
-      rfq: string;
       name: string;
       categoryId: bigint;
       unitId: bigint;
@@ -110,12 +118,6 @@ export const POST = withApi(async (req) => {
       return;
     }
     const r = parsed.data;
-
-    const rfqKey = r.rfq.toLowerCase();
-    if (usedRfqs.has(rfqKey)) {
-      errors.push({ row: rowNum, message: `RFQ "${r.rfq}" already exists` });
-      return;
-    }
 
     const categoryId = catByCode.get(r.categoryCode.toLowerCase());
     if (!categoryId) {
@@ -151,7 +153,6 @@ export const POST = withApi(async (req) => {
     valid.push({
       rowNum,
       data: {
-        rfq: r.rfq,
         name: r.name,
         categoryId,
         unitId,
@@ -164,21 +165,33 @@ export const POST = withApi(async (req) => {
         description: r.description ?? null,
       },
     });
-    usedRfqs.add(rfqKey); // catch dupes within the same upload
   });
 
-  // Insert each valid row in its own transaction so a single failure (e.g.
-  // race with another import) does not roll back rows the user could keep.
+  // Insert each valid row, walking the auto-generated serial forward as we
+  // go. Concurrent imports could collide on the same JC-NNNNN — when that
+  // happens (Prisma P2002), we advance the counter and retry per row.
   let created = 0;
+  let cursor  = baseCount;
+  const MAX_RETRIES = 8;
   for (const v of valid) {
-    try {
-      await prisma.item.create({ data: v.data });
-      created++;
-    } catch (err) {
-      errors.push({
-        row: v.rowNum,
-        message: err instanceof Error ? err.message : "Insert failed",
-      });
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      cursor += 1;
+      try {
+        await prisma.item.create({ data: { ...v.data, rfq: formatSerial(cursor) } });
+        created++;
+        break;
+      } catch (err) {
+        const isUniqueViolation =
+          err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+        if (!isUniqueViolation || attempt === MAX_RETRIES - 1) {
+          errors.push({
+            row: v.rowNum,
+            message: err instanceof Error ? err.message : "Insert failed",
+          });
+          break;
+        }
+        // P2002: bump cursor and try again with the next serial.
+      }
     }
   }
 

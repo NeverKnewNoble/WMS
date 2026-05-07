@@ -95,10 +95,8 @@ export default function StockInPage() {
                 <th className="px-6 py-3 font-medium text-right">Qty</th>
                 <th className="px-6 py-3 font-medium">Unit</th>
                 <th className="px-6 py-3 font-medium">Supplier</th>
-                <th className="px-6 py-3 font-medium">RFQ</th>
-                <th className="px-6 py-3 font-medium">Dept</th>
+                <th className="px-6 py-3 font-medium">Serial</th>
                 <th className="px-6 py-3 font-medium">Project (WBS)</th>
-                <th className="px-6 py-3 font-medium">Received by</th>
                 <th className="px-6 py-3 font-medium">Condition</th>
                 <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
@@ -106,13 +104,13 @@ export default function StockInPage() {
             <tbody>
               {loading && movements.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/40">
                     Loading goods received…
                   </td>
                 </tr>
               ) : movements.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/40">
                     No GRNs yet. Click <span className="text-white/70">Add stock in</span> to record one.
                   </td>
                 </tr>
@@ -139,9 +137,8 @@ export default function StockInPage() {
                       <td className="px-6 py-3.5 text-white/65">{line?.unit ?? "—"}</td>
                       <td className="px-6 py-3.5 text-white/65">{m.supplier?.name ?? "—"}</td>
                       <td className="px-6 py-3.5">
-                        <MonoCell>{m.rfq ?? "—"}</MonoCell>
+                        <MonoCell>{line?.itemRfq ?? "—"}</MonoCell>
                       </td>
-                      <td className="px-6 py-3.5 text-white/65">{m.department?.label ?? "—"}</td>
                       <td className="px-6 py-3.5">
                         {m.project ? (
                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white/5 font-mono text-[11px] font-semibold text-white">
@@ -150,9 +147,6 @@ export default function StockInPage() {
                         ) : (
                           <span className="text-white/40">—</span>
                         )}
-                      </td>
-                      <td className="px-6 py-3.5 text-white/65">
-                        {m.receivedBy?.fullName ?? "—"}
                       </td>
                       <td className="px-6 py-3.5">
                         <StatusPill tone="good">{line?.condition ?? "good"}</StatusPill>
@@ -205,7 +199,6 @@ export default function StockInPage() {
                     ? `${deleting.lines[0].qty} ${deleting.lines[0].unit}`
                     : "—",
                 },
-                { label: "Received by", value: deleting.receivedBy?.fullName ?? "—" },
               ]
             : undefined
         }

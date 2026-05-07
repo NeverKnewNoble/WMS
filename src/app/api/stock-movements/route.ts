@@ -103,7 +103,10 @@ const lineSchema = z.object({
 });
 
 const createSchema = z.object({
-  refNo: z.string().min(1).max(64),
+  // refNo is optional: clients can supply their own (e.g. legacy or imported
+  // movements), and the server will auto-generate one (GRN-YYYY-NNNN /
+  // MRN-YYYY-NNNN) when it's omitted or blank.
+  refNo: z.string().min(1).max(64).optional(),
   direction: z.enum(["in", "out"]),
   kind: z.enum(["operations", "maintenance"]),
   movementDate: z.string(),
@@ -132,6 +135,18 @@ async function emailToUserId(email: string | null | undefined) {
   if (!email) return null;
   const u = await prisma.user.findUnique({ where: { email } });
   return u?.id ?? null;
+}
+
+// Auto-generated movement reference numbers follow the convention
+// GRN-YYYY-NNNN (stock-in) and MRN-YYYY-NNNN (stock-out). The sequence
+// resets each calendar year by virtue of being scoped via `startsWith`.
+async function generateRefNo(direction: "in" | "out"): Promise<string> {
+  const year   = new Date().getFullYear();
+  const prefix = direction === "in" ? "GRN" : "MRN";
+  const count  = await prisma.stockMovement.count({
+    where: { direction, refNo: { startsWith: `${prefix}-${year}-` } },
+  });
+  return `${prefix}-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
 export const POST = withApi(async (req) => {
@@ -180,36 +195,53 @@ export const POST = withApi(async (req) => {
     }),
   );
 
-  const created = await prisma.stockMovement.create({
-    data: {
-      refNo: body.refNo,
-      direction: body.direction,
-      kind: body.kind,
-      movementDate: new Date(body.movementDate),
-      rfq: body.rfq ?? null,
-      notes: body.notes ?? null,
+  // When the client supplies a refNo we use it as-is; otherwise we walk the
+  // generator forward, retrying on unique-violation in case of a concurrent
+  // create. With a year-scoped count this only collides under simultaneous
+  // inserts, so a small retry budget is plenty.
+  const userSuppliedRef = (body.refNo ?? "").trim();
+  const MAX_TRIES = 8;
+  for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+    const refNo = userSuppliedRef || (await generateRefNo(body.direction));
+    try {
+      const created = await prisma.stockMovement.create({
+        data: {
+          refNo,
+          direction: body.direction,
+          kind: body.kind,
+          movementDate: new Date(body.movementDate),
+          rfq: body.rfq ?? null,
+          notes: body.notes ?? null,
 
-      supplierId: supplier?.id ?? null,
-      receivedByUserId: receivedById,
+          supplierId: supplier?.id ?? null,
+          receivedByUserId: receivedById,
 
-      projectId: project?.id ?? null,
-      departmentId: department?.id ?? null,
-      activity: body.activity ?? null,
-      issuedToUserId: issuedToId,
-      authorisedByUserId: authorisedById,
+          projectId: project?.id ?? null,
+          departmentId: department?.id ?? null,
+          activity: body.activity ?? null,
+          issuedToUserId: issuedToId,
+          authorisedByUserId: authorisedById,
 
-      siteId: site?.id ?? null,
-      technicianUserId: technicianId,
-      application: body.application ?? null,
-      manufacturerId: manufacturer?.id ?? null,
-      storageLocationId: storage?.id ?? null,
+          siteId: site?.id ?? null,
+          technicianUserId: technicianId,
+          application: body.application ?? null,
+          manufacturerId: manufacturer?.id ?? null,
+          storageLocationId: storage?.id ?? null,
 
-      createdByUserId: me.id,
+          createdByUserId: me.id,
 
-      items: { create: lineData },
-    },
-    include: { items: true },
-  });
+          items: { create: lineData },
+        },
+        include: { items: true },
+      });
+      return jsonOk(created, { status: 201 });
+    } catch (err) {
+      const isUniqueViolation =
+        err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+      // User-supplied duplicates are a real error, not something to silently retry.
+      if (!isUniqueViolation || userSuppliedRef || attempt === MAX_TRIES - 1) throw err;
+    }
+  }
 
-  return jsonOk(created, { status: 201 });
+  return jsonError("Could not generate a unique reference number", 500);
 });

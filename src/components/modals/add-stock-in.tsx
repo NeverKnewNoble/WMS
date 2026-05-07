@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { FieldLabel, fieldClass } from "../ui_components/portal/primitives";
@@ -23,9 +23,17 @@ export default function AddStockInDialog({
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const [lookups, setLookups] = useState<Lookups | null>(null);
-  const [items, setItems] = useState<ApiItem[]>([]);
+  const [lookups, setLookups]   = useState<Lookups | null>(null);
+  const [items, setItems]       = useState<ApiItem[]>([]);
   const [projects, setProjects] = useState<ProjectListRow[]>([]);
+
+  // Selected item drives auto-filled unit + current-stock display in the
+  // upper section. Tracked by RFQ (the unique key) for stable lookups.
+  const [selectedRfq, setSelectedRfq] = useState("");
+  const selectedItem = useMemo(
+    () => items.find((it) => it.rfq === selectedRfq) ?? null,
+    [items, selectedRfq],
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -65,6 +73,11 @@ export default function AddStockInDialog({
     };
   }, [open]);
 
+  // Reset selection when the dialog re-opens so previous picks don't leak in.
+  useEffect(() => {
+    if (!open) setSelectedRfq("");
+  }, [open]);
+
   const close = () => setOpen(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -77,16 +90,15 @@ export default function AddStockInDialog({
 
     try {
       const m = await createMovement({
-        refNo:           get("refNo"),
-        direction:       "in",
-        kind:            "operations",
-        movementDate:    get("movementDate"),
-        rfq:             get("rfq") || null,
-        notes:           get("notes") || null,
-        supplierName:    get("supplierName"),
-        receivedByEmail: get("receivedByEmail") || null,
-        projectWbs:      get("projectWbs") || null,
-        departmentCode:  get("departmentCode") || null,
+        // refNo intentionally omitted — the server auto-generates GRN-YYYY-NNNN.
+        // Movement-level RFQ is no longer captured here; the item's own serial
+        // is the identifier and shows in the table's RFQ column.
+        direction:           "in",
+        kind:                "operations",
+        movementDate:        get("movementDate"),
+        notes:               get("notes") || null,
+        supplierName:        get("supplierName"),
+        projectWbs:          get("projectWbs") || null,
         storageLocationCode: get("storageLocationCode") || null,
         lines: [
           {
@@ -132,12 +144,14 @@ export default function AddStockInDialog({
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-orange/40 to-transparent" />
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/8 px-6 pb-5 pt-6">
                   <div>
-                    <h2 className="text-lg font-semibold tracking-tight text-white">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-orange">
+                      Operations · Stock in
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
                       Record stock in
                     </h2>
                     <p className="mt-1 text-xs text-white/50">
-                      Log incoming materials with a Goods Received Note. Stock
-                      on hand updates automatically.
+                      A GRN number is generated automatically when you save.
                     </p>
                   </div>
                   <button
@@ -150,170 +164,164 @@ export default function AddStockInDialog({
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-6 py-6">
-                  <form onSubmit={onSubmit} className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                    <div>
-                      <FieldLabel>GRN number *</FieldLabel>
-                      <input
-                        name="refNo"
-                        className={fieldClass}
-                        placeholder="e.g. GRN-26-004"
-                        required
+                  <form onSubmit={onSubmit} className="space-y-7">
+                    {/* ── Section 1 — Item ─────────────────────────────── */}
+                    <section>
+                      <SectionHeading
+                        eyebrow="01"
+                        title="Item"
+                        hint="Pick the SKU. Unit and live stock are pulled from the registry."
                       />
-                    </div>
-                    <div>
-                      <FieldLabel>Date of receipt *</FieldLabel>
-                      <input
-                        name="movementDate"
-                        className={fieldClass}
-                        type="date"
-                        required
-                        defaultValue={new Date().toISOString().slice(0, 10)}
+
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <FieldLabel>Item *</FieldLabel>
+                          <select
+                            name="itemRfq"
+                            className={fieldClass}
+                            required
+                            value={selectedRfq}
+                            onChange={(e) => setSelectedRfq(e.target.value)}
+                          >
+                            <option value="" disabled>
+                              {items.length ? "Select an item" : "Loading items…"}
+                            </option>
+                            {items.map((it) => (
+                              <option key={it.id} value={it.rfq}>
+                                {it.rfq} — {it.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                          <ReadonlyChip
+                            label="Unit"
+                            value={selectedItem?.unit.label ?? "—"}
+                          />
+                          <ReadonlyChip
+                            label="Current stock"
+                            value={
+                              selectedItem
+                                ? `${selectedItem.currentStock.toLocaleString()} ${selectedItem.unit.label}`
+                                : "—"
+                            }
+                            tone={statusTone(selectedItem)}
+                          />
+                          <ReadonlyChip
+                            label="Category"
+                            value={selectedItem?.category.label ?? "—"}
+                          />
+                        </div>
+
+                        {/* Carry the selected item's unit code through to the API
+                            without exposing a redundant Unit dropdown. */}
+                        <input
+                          type="hidden"
+                          name="unitCode"
+                          value={selectedItem?.unit.code ?? ""}
+                        />
+                      </div>
+                    </section>
+
+                    {/* ── Section 2 — Receipt details ──────────────────── */}
+                    <section className="border-t border-white/8 pt-7">
+                      <SectionHeading
+                        eyebrow="02"
+                        title="Receipt details"
+                        hint="Supplier, quantity, and where the goods are landing."
                       />
-                    </div>
-                    <div>
-                      <FieldLabel>RFQ number</FieldLabel>
-                      <input
-                        name="rfq"
-                        className={fieldClass}
-                        placeholder="e.g. RFQ-2026-019"
-                      />
-                    </div>
 
-                    <div>
-                      <FieldLabel>Item *</FieldLabel>
-                      <select
-                        name="itemRfq"
-                        className={fieldClass}
-                        required
-                        defaultValue=""
-                      >
-                        <option value="" disabled>
-                          {items.length ? "Select an item" : "Loading items…"}
-                        </option>
-                        {items.map((it) => (
-                          <option key={it.id} value={it.rfq}>
-                            {it.rfq} — {it.name} ({it.unit.label})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <FieldLabel>Quantity *</FieldLabel>
-                      <input
-                        name="qty"
-                        className={fieldClass}
-                        type="number"
-                        step="any"
-                        min={0.001}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <FieldLabel>Unit *</FieldLabel>
-                      <select
-                        name="unitCode"
-                        className={fieldClass}
-                        required
-                        defaultValue=""
-                      >
-                        <option value="" disabled>
-                          {lookups ? "Select a unit" : "Loading units…"}
-                        </option>
-                        {lookups?.units.map((u) => (
-                          <option key={u.id} value={u.code}>
-                            {u.label}
-                            {u.symbol ? ` (${u.symbol})` : ""}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-3">
+                        <div>
+                          <FieldLabel>Date of receipt *</FieldLabel>
+                          <input
+                            name="movementDate"
+                            className={fieldClass}
+                            type="date"
+                            required
+                            defaultValue={new Date().toISOString().slice(0, 10)}
+                          />
+                        </div>
+                        <div>
+                          <FieldLabel>Quantity *</FieldLabel>
+                          <input
+                            name="qty"
+                            className={fieldClass}
+                            type="number"
+                            step="any"
+                            min={0.001}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <FieldLabel>Condition</FieldLabel>
+                          <select name="condition" className={fieldClass} defaultValue="good">
+                            <option value="good">Good</option>
+                            <option value="damaged">Damaged</option>
+                            <option value="partial">Partial</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
+                        </div>
 
-                    <div className="sm:col-span-2">
-                      <FieldLabel>Supplier *</FieldLabel>
-                      <select
-                        name="supplierName"
-                        className={fieldClass}
-                        required
-                        defaultValue=""
-                      >
-                        <option value="" disabled>
-                          {lookups ? "Select a supplier" : "Loading suppliers…"}
-                        </option>
-                        {lookups?.suppliers.map((s) => (
-                          <option key={s.id} value={s.name}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <FieldLabel>Department</FieldLabel>
-                      <select name="departmentCode" className={fieldClass} defaultValue="">
-                        <option value="">—</option>
-                        {lookups?.departments.map((d) => (
-                          <option key={d.id} value={d.code}>
-                            {d.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                        <div className="sm:col-span-3">
+                          <FieldLabel>Supplier *</FieldLabel>
+                          <select
+                            name="supplierName"
+                            className={fieldClass}
+                            required
+                            defaultValue=""
+                          >
+                            <option value="" disabled>
+                              {lookups ? "Select a supplier" : "Loading suppliers…"}
+                            </option>
+                            {lookups?.suppliers.map((s) => (
+                              <option key={s.id} value={s.name}>
+                                {s.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-                    <div>
-                      <FieldLabel>Project</FieldLabel>
-                      <select name="projectWbs" className={fieldClass} defaultValue="">
-                        <option value="">—</option>
-                        {projects.map((p) => (
-                          <option key={p.id} value={p.wbs}>
-                            {p.wbs} — {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <FieldLabel>Storage location</FieldLabel>
-                      <select
-                        name="storageLocationCode"
-                        className={fieldClass}
-                        defaultValue=""
-                      >
-                        <option value="">—</option>
-                        {lookups?.storageLocations.map((s) => (
-                          <option key={s.id} value={s.code}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <FieldLabel>Condition</FieldLabel>
-                      <select name="condition" className={fieldClass} defaultValue="good">
-                        <option value="good">Good</option>
-                        <option value="damaged">Damaged</option>
-                        <option value="partial">Partial</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
-                    </div>
+                        <div className="sm:col-span-2">
+                          <FieldLabel>Project</FieldLabel>
+                          <select name="projectWbs" className={fieldClass} defaultValue="">
+                            <option value="">—</option>
+                            {projects.map((p) => (
+                              <option key={p.id} value={p.wbs}>
+                                {p.wbs} — {p.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <FieldLabel>Storage location</FieldLabel>
+                          <select
+                            name="storageLocationCode"
+                            className={fieldClass}
+                            defaultValue=""
+                          >
+                            <option value="">—</option>
+                            {lookups?.storageLocations.map((s) => (
+                              <option key={s.id} value={s.code}>
+                                {s.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-                    <div className="sm:col-span-3">
-                      <FieldLabel>Received by (email)</FieldLabel>
-                      <input
-                        name="receivedByEmail"
-                        type="email"
-                        className={fieldClass}
-                        placeholder="receiver@example.com"
-                      />
-                    </div>
+                        <div className="sm:col-span-3">
+                          <FieldLabel>Notes / remarks</FieldLabel>
+                          <textarea
+                            name="notes"
+                            rows={3}
+                            className={`${fieldClass} resize-none`}
+                          />
+                        </div>
+                      </div>
+                    </section>
 
-                    <div className="sm:col-span-3">
-                      <FieldLabel>Notes / remarks</FieldLabel>
-                      <textarea
-                        name="notes"
-                        rows={3}
-                        className={`${fieldClass} resize-none`}
-                      />
-                    </div>
-
-                    <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-3">
+                    <div className="-mx-6 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5">
                       <button
                         type="button"
                         onClick={close}
@@ -323,7 +331,7 @@ export default function AddStockInDialog({
                       </button>
                       <button
                         type="submit"
-                        disabled={submitting}
+                        disabled={submitting || !selectedItem}
                         className="rounded-full bg-linear-to-r from-emerald-400 to-emerald-500 px-6 py-2 text-sm font-semibold text-zinc-900 shadow-lg shadow-emerald-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {submitting ? "Saving…" : "Save GRN"}
@@ -338,4 +346,59 @@ export default function AddStockInDialog({
         )}
     </>
   );
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  hint,
+}: {
+  eyebrow: string;
+  title: string;
+  hint: string;
+}) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <span className="font-mono text-[11px] font-semibold tracking-[0.2em] text-brand-orange/80">
+        {eyebrow}
+      </span>
+      <div>
+        <h3 className="text-sm font-semibold tracking-tight text-white">{title}</h3>
+        <p className="mt-0.5 text-[11px] text-white/45">{hint}</p>
+      </div>
+    </div>
+  );
+}
+
+function ReadonlyChip({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "ok" | "warn" | "critical";
+}) {
+  const valueClass =
+    tone === "ok"       ? "text-emerald-300"
+    : tone === "warn"     ? "text-amber-300"
+    : tone === "critical" ? "text-rose-300"
+    :                       "text-white";
+  return (
+    <div className="rounded-lg border border-white/8 bg-white/3 px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+        {label}
+      </p>
+      <p className={`mt-1 text-sm font-medium ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function statusTone(item: ApiItem | null): "default" | "ok" | "warn" | "critical" {
+  if (!item) return "default";
+  return item.status === "out" || item.status === "critical"
+    ? "critical"
+    : item.status === "low"
+      ? "warn"
+      : "ok";
 }
