@@ -19,16 +19,6 @@ export default function Hero() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(226,107,26,0.22),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(176,82,16,0.18),transparent_55%)]" />
 
-      {/* Decorative hazard accents — diagonal tape strokes in the corners. */}
-      <div
-        aria-hidden
-        className="bg-hazard pointer-events-none absolute -right-10 top-24 h-2 w-72 rotate-[-6deg] opacity-80 shadow-[0_8px_28px_rgba(226,107,26,0.35)]"
-      />
-      <div
-        aria-hidden
-        className="bg-hazard pointer-events-none absolute -left-12 bottom-32 h-2 w-64 rotate-[6deg] opacity-70"
-      />
-
       <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col px-6 pb-20 pt-12 sm:px-10 lg:px-16 lg:pt-16">
         {/* Top row: wordmark + portal nav. */}
         <header className="flex items-start justify-between gap-6">
