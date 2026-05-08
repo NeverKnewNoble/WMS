@@ -8,11 +8,9 @@ import { createMovement } from "@/services/stock-movements";
 import { showSuccessToast } from "@/services/toast";
 import { getLookups } from "@/services/lookups";
 import { listItems } from "@/services/items";
-import { listProjects } from "@/services/projects";
 import type { MovementCondition } from "@/types/stock-movements";
 import type { Lookups } from "@/types/lookups";
 import type { ApiItem } from "@/types/items";
-import type { ProjectListRow } from "@/types/projects";
 
 export default function AddStockInDialog({
   onCreated,
@@ -25,7 +23,6 @@ export default function AddStockInDialog({
 
   const [lookups, setLookups]   = useState<Lookups | null>(null);
   const [items, setItems]       = useState<ApiItem[]>([]);
-  const [projects, setProjects] = useState<ProjectListRow[]>([]);
 
   // Selected item drives auto-filled unit + current-stock display in the
   // upper section. Tracked by RFQ (the unique key) for stable lookups.
@@ -55,15 +52,13 @@ export default function AddStockInDialog({
     let cancelled = false;
     (async () => {
       try {
-        const [l, i, p] = await Promise.all([
+        const [l, i] = await Promise.all([
           getLookups(),
           listItems({ limit: 500 }),
-          listProjects({ limit: 500 }),
         ]);
         if (cancelled) return;
         setLookups(l);
         setItems(i.data);
-        setProjects(p.data);
       } catch {
         // toast already shown by services
       }
@@ -98,7 +93,6 @@ export default function AddStockInDialog({
         movementDate:        get("movementDate"),
         notes:               get("notes") || null,
         supplierName:        get("supplierName"),
-        projectWbs:          get("projectWbs") || null,
         storageLocationCode: get("storageLocationCode") || null,
         lines: [
           {
@@ -283,18 +277,7 @@ export default function AddStockInDialog({
                           </select>
                         </div>
 
-                        <div className="sm:col-span-2">
-                          <FieldLabel>Project</FieldLabel>
-                          <select name="projectWbs" className={fieldClass} defaultValue="">
-                            <option value="">—</option>
-                            {projects.map((p) => (
-                              <option key={p.id} value={p.wbs}>
-                                {p.wbs} — {p.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
+                        <div className="sm:col-span-3">
                           <FieldLabel>Storage location</FieldLabel>
                           <select
                             name="storageLocationCode"

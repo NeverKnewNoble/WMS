@@ -15,6 +15,7 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { listMovements, deleteMovement } from "@/services/stock-movements";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters, distinctOptions } from "@/lib/table-filters";
 import type {
   MovementDirection,
   MovementRow,
@@ -37,15 +38,43 @@ export default function MaintenancePage() {
     [],
   );
 
-  const movements = data?.data ?? [];
+  const movements = useMemo(() => data?.data ?? [], [data]);
 
-  const rows = useMemo(
+  const directionFiltered = useMemo(
     () =>
       filter === "all"
         ? movements
         : movements.filter((m) => m.direction === filter),
     [movements, filter],
   );
+
+  const siteOptions = useMemo(
+    () => distinctOptions(movements, (m) => m.site?.label),
+    [movements],
+  );
+
+  const {
+    query,
+    setQuery,
+    filters: filterValues,
+    setFilter: setFilterValue,
+    filtered: rows,
+  } = useTableFilters<MovementRow, "date" | "site">(directionFiltered, {
+    searchFields: [
+      (m) => m.refNo,
+      (m) => m.lines[0]?.itemName,
+      (m) => m.lines[0]?.itemRfq,
+      (m) => m.manufacturer?.name,
+      (m) => m.supplier?.name,
+      (m) => m.site?.label,
+      (m) => m.technician?.fullName,
+      (m) => m.application,
+    ],
+    filters: {
+      date: { allValue: "", predicate: (m, v) => m.movementDate.slice(0, 10) === v },
+      site: { predicate: (m, v) => m.site?.label === v },
+    },
+  });
 
   const inCount  = movements.filter((m) => m.direction === "in").length;
   const outCount = movements.length - inCount;
@@ -113,14 +142,28 @@ export default function MaintenancePage() {
         <div className="grid gap-3 sm:grid-cols-[1fr_180px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-            <input className={`${fieldClass} pl-9`} placeholder="Search items..." />
+            <input
+              className={`${fieldClass} pl-9`}
+              placeholder="Search items, sites, technicians..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </div>
-          <input className={fieldClass} type="date" />
-          <select className={fieldClass} defaultValue="All Categories">
-            <option>All Categories</option>
-            <option>Mechanical Parts</option>
-            <option>HVAC Parts</option>
-            <option>Electrical Parts</option>
+          <input
+            className={fieldClass}
+            type="date"
+            value={filterValues.date}
+            onChange={(e) => setFilterValue("date", e.target.value)}
+          />
+          <select
+            className={fieldClass}
+            value={filterValues.site}
+            onChange={(e) => setFilterValue("site", e.target.value)}
+          >
+            <option value="all">All sites</option>
+            {siteOptions.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
           </select>
         </div>
       </Surface>

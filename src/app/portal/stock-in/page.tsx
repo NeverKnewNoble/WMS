@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Search, Trash2 } from "lucide-react";
 import {
   PageHeader,
@@ -20,6 +20,7 @@ import {
 } from "@/services/stock-movements";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters, distinctOptions } from "@/lib/table-filters";
 import type { MovementRow } from "@/types/stock-movements";
 
 export default function StockInPage() {
@@ -29,7 +30,29 @@ export default function StockInPage() {
     () => listMovements({ kind: "operations", direction: "in" }),
     [],
   );
-  const movements = data?.data ?? [];
+  const movements = useMemo(() => data?.data ?? [], [data]);
+
+  const supplierOptions = useMemo(
+    () => distinctOptions(movements, (m) => m.supplier?.name),
+    [movements],
+  );
+
+  const { query, setQuery, filters, setFilter, filtered } = useTableFilters<
+    MovementRow,
+    "date" | "supplier" | "condition"
+  >(movements, {
+    searchFields: [
+      (m) => m.refNo,
+      (m) => m.supplier?.name,
+      (m) => m.lines[0]?.itemName,
+      (m) => m.lines[0]?.itemRfq,
+    ],
+    filters: {
+      date:      { allValue: "", predicate: (m, v) => m.movementDate.slice(0, 10) === v },
+      supplier:  { predicate: (m, v) => m.supplier?.name === v },
+      condition: { predicate: (m, v) => (m.lines[0]?.condition ?? "good") === v },
+    },
+  });
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleting) return;
@@ -69,17 +92,36 @@ export default function StockInPage() {
             <input
               className={`${fieldClass} pl-9`}
               placeholder="Search GRN, item, or supplier..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <input className={fieldClass} type="date" />
-          <select className={fieldClass} defaultValue="All Suppliers">
-            <option>All Suppliers</option>
+          <input
+            className={fieldClass}
+            type="date"
+            value={filters.date}
+            onChange={(e) => setFilter("date", e.target.value)}
+          />
+          <select
+            className={fieldClass}
+            value={filters.supplier}
+            onChange={(e) => setFilter("supplier", e.target.value)}
+          >
+            <option value="all">All suppliers</option>
+            {supplierOptions.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
           </select>
-          <select className={fieldClass} defaultValue="All Categories">
-            <option>All Categories</option>
-            <option>Structural</option>
-            <option>Finishing</option>
-            <option>Electrical</option>
+          <select
+            className={fieldClass}
+            value={filters.condition}
+            onChange={(e) => setFilter("condition", e.target.value)}
+          >
+            <option value="all">All conditions</option>
+            <option value="good">Good</option>
+            <option value="damaged">Damaged</option>
+            <option value="partial">Partial</option>
+            <option value="rejected">Rejected</option>
           </select>
         </div>
       </Surface>
@@ -114,8 +156,14 @@ export default function StockInPage() {
                     No GRNs yet. Click <span className="text-white/85">Add stock in</span> to record one.
                   </td>
                 </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/85">
+                    No GRNs match the current search or filters.
+                  </td>
+                </tr>
               ) : (
-                movements.map((m) => {
+                filtered.map((m) => {
                   const line = m.lines[0];
                   return (
                     <tr
@@ -172,7 +220,7 @@ export default function StockInPage() {
         </div>
 
         <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/90">
-          <p>{data ? `Showing ${movements.length} of ${data.total} entries` : "—"}</p>
+          <p>{data ? `Showing ${filtered.length} of ${data.total} entries` : "—"}</p>
         </div>
       </Surface>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pencil, Search, Trash2 } from "lucide-react";
 import {
   PageHeader,
@@ -14,6 +14,7 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { deleteSupplier, listSuppliers } from "@/services/suppliers";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters } from "@/lib/table-filters";
 import type { SupplierRow } from "@/types/lookups";
 
 export default function SuppliersPage() {
@@ -21,7 +22,16 @@ export default function SuppliersPage() {
   const [deleting, setDeleting] = useState<SupplierRow | null>(null);
 
   const { data, loading, refetch } = useService(() => listSuppliers(), []);
-  const suppliers = data?.data ?? [];
+  const suppliers = useMemo(() => data?.data ?? [], [data]);
+
+  const { query, setQuery, filtered } = useTableFilters<SupplierRow>(suppliers, {
+    searchFields: [
+      (s) => s.name,
+      (s) => s.contactName,
+      (s) => s.email,
+      (s) => s.phone,
+    ],
+  });
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleting) return;
@@ -50,6 +60,8 @@ export default function SuppliersPage() {
           <input
             className={`${fieldClass} pl-9`}
             placeholder="Search by name, contact, or phone..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </div>
       </Surface>
@@ -81,8 +93,14 @@ export default function SuppliersPage() {
                     No suppliers yet. Click <span className="text-white/85">Add supplier</span> to start.
                   </td>
                 </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-xs text-white/85">
+                    No suppliers match the current search.
+                  </td>
+                </tr>
               ) : (
-                suppliers.map((s) => (
+                filtered.map((s) => (
                   <tr
                     key={s.id}
                     className="border-b border-white/5 transition hover:bg-white/3"

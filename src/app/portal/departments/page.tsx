@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pencil, Search, Trash2 } from "lucide-react";
 import {
   PageHeader,
@@ -14,6 +14,7 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { deleteDepartment, listDepartments } from "@/services/departments";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters } from "@/lib/table-filters";
 import type { DepartmentRow } from "@/types/lookups";
 
 export default function DepartmentsPage() {
@@ -21,7 +22,11 @@ export default function DepartmentsPage() {
   const [deleting, setDeleting] = useState<DepartmentRow | null>(null);
 
   const { data, loading, refetch } = useService(() => listDepartments(), []);
-  const departments = data?.data ?? [];
+  const departments = useMemo(() => data?.data ?? [], [data]);
+
+  const { query, setQuery, filtered } = useTableFilters<DepartmentRow>(departments, {
+    searchFields: [(d) => d.code, (d) => d.label],
+  });
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleting) return;
@@ -50,6 +55,8 @@ export default function DepartmentsPage() {
           <input
             className={`${fieldClass} pl-9`}
             placeholder="Search by code or label..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </div>
       </Surface>
@@ -78,8 +85,14 @@ export default function DepartmentsPage() {
                     No departments yet. Click <span className="text-white/85">Add department</span> to start.
                   </td>
                 </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-10 text-center text-xs text-white/85">
+                    No departments match the current search.
+                  </td>
+                </tr>
               ) : (
-                departments.map((d) => (
+                filtered.map((d) => (
                   <tr
                     key={d.id}
                     className="border-b border-white/5 transition hover:bg-white/3"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Search, Pencil, Trash2 } from "lucide-react";
 import {
   PageHeader,
@@ -22,6 +22,7 @@ import {
 } from "@/services/items";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters, distinctOptions } from "@/lib/table-filters";
 import type { ApiItem } from "@/types/items";
 
 const STATUS_TONE: Record<ApiItem["status"], StatusTone> = {
@@ -43,7 +44,27 @@ export default function InventoryPage() {
   const [deleting, setDeleting] = useState<ApiItem | null>(null);
 
   const { data, loading, refetch } = useService(() => listItems(), []);
-  const items = data?.data ?? [];
+  const items = useMemo(() => data?.data ?? [], [data]);
+
+  const categoryOptions = useMemo(
+    () => distinctOptions(items, (it) => it.category.label),
+    [items],
+  );
+
+  const { query, setQuery, filters, setFilter, filtered } = useTableFilters<
+    ApiItem,
+    "category" | "status"
+  >(items, {
+    searchFields: [(it) => it.name, (it) => it.rfq],
+    filters: {
+      category: {
+        predicate: (it, v) => it.category.label === v,
+      },
+      status: {
+        predicate: (it, v) => it.status === v,
+      },
+    },
+  });
 
   const handleConfirmDelete = useCallback(
     async (it: ApiItem) => {
@@ -85,19 +106,30 @@ export default function InventoryPage() {
             <input
               className={`${fieldClass} pl-9`}
               placeholder="Search by name or serial..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <select className={fieldClass} defaultValue="All">
-            <option>All</option>
-            <option>Structural</option>
-            <option>Finishing</option>
-            <option>Electrical</option>
+          <select
+            className={fieldClass}
+            value={filters.category}
+            onChange={(e) => setFilter("category", e.target.value)}
+          >
+            <option value="all">All categories</option>
+            {categoryOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
-          <select className={fieldClass} defaultValue="All">
-            <option>All</option>
-            <option>In stock</option>
-            <option>Low</option>
-            <option>Critical</option>
+          <select
+            className={fieldClass}
+            value={filters.status}
+            onChange={(e) => setFilter("status", e.target.value)}
+          >
+            <option value="all">All statuses</option>
+            <option value="in_stock">In stock</option>
+            <option value="low">Low</option>
+            <option value="critical">Critical</option>
+            <option value="out">Out</option>
           </select>
         </div>
       </Surface>
@@ -132,8 +164,14 @@ export default function InventoryPage() {
                     No items yet. Click <span className="text-white/85">Add item</span> to register your first SKU.
                   </td>
                 </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/85">
+                    No items match the current search or filters.
+                  </td>
+                </tr>
               ) : (
-                items.map((it) => (
+                filtered.map((it) => (
                   <tr
                     key={it.id}
                     className="border-b border-white/5 transition hover:bg-white/3"
@@ -191,7 +229,7 @@ export default function InventoryPage() {
         <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/90">
           <p>
             {data
-              ? `Showing ${items.length} of ${data.total} item${data.total === 1 ? "" : "s"}`
+              ? `Showing ${filtered.length} of ${data.total} item${data.total === 1 ? "" : "s"}`
               : "—"}
           </p>
         </div>

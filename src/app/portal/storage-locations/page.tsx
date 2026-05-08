@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pencil, Search, Trash2 } from "lucide-react";
 import {
   PageHeader,
@@ -17,6 +17,7 @@ import {
 } from "@/services/storage-locations";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters } from "@/lib/table-filters";
 import type { StorageLocationRow } from "@/types/lookups";
 
 export default function StorageLocationsPage() {
@@ -24,7 +25,11 @@ export default function StorageLocationsPage() {
   const [deleting, setDeleting] = useState<StorageLocationRow | null>(null);
 
   const { data, loading, refetch } = useService(() => listStorageLocations(), []);
-  const locations = data?.data ?? [];
+  const locations = useMemo(() => data?.data ?? [], [data]);
+
+  const { query, setQuery, filtered } = useTableFilters<StorageLocationRow>(locations, {
+    searchFields: [(l) => l.code, (l) => l.label, (l) => l.address],
+  });
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleting) return;
@@ -53,6 +58,8 @@ export default function StorageLocationsPage() {
           <input
             className={`${fieldClass} pl-9`}
             placeholder="Search by code, label, or address..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </div>
       </Surface>
@@ -82,8 +89,14 @@ export default function StorageLocationsPage() {
                     No locations yet. Click <span className="text-white/85">Add location</span> to start.
                   </td>
                 </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-xs text-white/85">
+                    No locations match the current search.
+                  </td>
+                </tr>
               ) : (
-                locations.map((l) => (
+                filtered.map((l) => (
                   <tr
                     key={l.id}
                     className="border-b border-white/5 transition hover:bg-white/3"

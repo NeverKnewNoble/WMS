@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Search, Eye } from "lucide-react";
 import {
   PageHeader,
@@ -15,6 +15,7 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { listProjects, deleteProject } from "@/services/projects";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useTableFilters } from "@/lib/table-filters";
 import type { ProjectListRow, Project as LegacyProject } from "@/types/projects";
 
 /** Adapts the API row to the legacy shape that ProjectDetailsDialog still uses. */
@@ -35,7 +36,15 @@ export default function ProjectsPage() {
   const [deleting, setDeleting] = useState<ProjectListRow | null>(null);
 
   const { data, loading, refetch } = useService(() => listProjects(), []);
-  const projects = data?.data ?? [];
+  const projects = useMemo(() => data?.data ?? [], [data]);
+
+  const { query, setQuery, filtered } = useTableFilters<ProjectListRow>(projects, {
+    searchFields: [
+      (p) => p.wbs,
+      (p) => p.name,
+      (p) => p.location,
+    ],
+  });
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleting) return;
@@ -64,6 +73,8 @@ export default function ProjectsPage() {
           <input
             className={`${fieldClass} pl-9`}
             placeholder="Search by WBS code or project name..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </div>
       </Surface>
@@ -94,8 +105,14 @@ export default function ProjectsPage() {
                     No projects yet. Click <span className="text-white/85">Add project</span> to start.
                   </td>
                 </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/85">
+                    No projects match the current search.
+                  </td>
+                </tr>
               ) : (
-                projects.map((p) => (
+                filtered.map((p) => (
                   <tr
                     key={p.id}
                     className="border-b border-white/5 transition hover:bg-white/3"
