@@ -150,14 +150,14 @@ export default function AddStockInDialog({
                     <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
                       Record stock in
                     </h2>
-                    <p className="mt-1 text-xs text-white/50">
+                    <p className="mt-1 text-xs text-white/90">
                       A GRN number is generated automatically when you save.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={close}
-                    className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+                    className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -325,7 +325,7 @@ export default function AddStockInDialog({
                       <button
                         type="button"
                         onClick={close}
-                        className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                        className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                       >
                         Cancel
                       </button>
@@ -364,7 +364,7 @@ function SectionHeading({
       </span>
       <div>
         <h3 className="text-sm font-semibold tracking-tight text-white">{title}</h3>
-        <p className="mt-0.5 text-[11px] text-white/45">{hint}</p>
+        <p className="mt-0.5 text-[11px] text-white/85">{hint}</p>
       </div>
     </div>
   );
@@ -386,7 +386,7 @@ function ReadonlyChip({
     :                       "text-white";
   return (
     <div className="rounded-lg border border-white/8 bg-white/3 px-3 py-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
         {label}
       </p>
       <p className={`mt-1 text-sm font-medium ${valueClass}`}>{value}</p>

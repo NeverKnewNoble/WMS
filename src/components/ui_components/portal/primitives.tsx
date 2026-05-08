@@ -66,7 +66,7 @@ export function PageHeader({
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-2 max-w-2xl text-sm text-white/55">{subtitle}</p>
+          <p className="mt-2 max-w-2xl text-sm text-white/90">{subtitle}</p>
         )}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
@@ -107,7 +107,7 @@ export function ToolbarButton({
         "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition",
         variant === "primary"
           ? "bg-white text-zinc-900 shadow-lg shadow-black/30 hover:bg-zinc-100"
-          : "border border-white/10 bg-white/4 text-white/80 hover:bg-white/10 hover:text-white",
+          : "border border-white/10 bg-white/4 text-white/90 hover:bg-white/10 hover:text-white",
       )}
       {...rest}
     >
@@ -118,18 +118,18 @@ export function ToolbarButton({
 
 export function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75">
+    <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-white/85">
       {children}
     </label>
   );
 }
 
 export const fieldClass =
-  "mt-1.5 w-full rounded-lg border border-white/12 bg-white/5 px-3 py-2.5 text-sm text-white scheme-dark placeholder:text-white/40 focus:border-brand-orange/60 focus:bg-white/8 focus:outline-none focus:ring-2 focus:ring-brand-orange/30 disabled:cursor-not-allowed disabled:opacity-50";
+  "mt-1.5 w-full rounded-lg border border-white/12 bg-white/5 px-3 py-2.5 text-sm text-white scheme-dark placeholder:text-white/85 focus:border-brand-orange/60 focus:bg-white/8 focus:outline-none focus:ring-2 focus:ring-brand-orange/30 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function MonoCell({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-mono text-[12.5px] tracking-tight text-white/85">
+    <span className="font-mono text-[12.5px] tracking-tight text-white/95">
       {children}
     </span>
   );

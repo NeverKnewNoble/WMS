@@ -43,14 +43,14 @@ export default function ReportsPage() {
                 >
                   <r.icon className="h-5 w-5" />
                 </span>
-                <span className="rounded-full p-1.5 text-white/40 transition group-hover:bg-white/5 group-hover:text-white">
+                <span className="rounded-full p-1.5 text-white/85 transition group-hover:bg-white/5 group-hover:text-white">
                   <ArrowUpRight className="h-4 w-4" />
                 </span>
               </div>
               <h3 className="mt-5 text-base font-semibold text-white">
                 {r.title}
               </h3>
-              <p className="mt-1.5 text-sm text-white/55">{r.description}</p>
+              <p className="mt-1.5 text-sm text-white/90">{r.description}</p>
               <span className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white transition group-hover:bg-white/10">
                 Open report
               </span>

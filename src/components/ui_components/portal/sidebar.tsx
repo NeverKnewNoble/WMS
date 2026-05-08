@@ -92,7 +92,7 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
         >
           <JoshobWordmark size="sm" />
         </Link>
-        <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-white/45">
+        <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-white/85">
           Operations portal
         </p>
       </div>
@@ -100,7 +100,7 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
       <nav className="relative flex-1 overflow-y-auto px-3 pb-6">
         {SECTIONS.map((section) => (
           <div key={section.heading} className="mb-6">
-            <p className="px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35">
+            <p className="px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/85">
               {section.heading}
             </p>
             <div className="space-y-0.5">
@@ -115,7 +115,7 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
                       "group relative flex items-center gap-3 rounded-lg px-3.5 py-2 text-sm font-medium transition-all animate-nav-item-in",
                       active
                         ? "bg-white/6 text-white"
-                        : "text-white/55 hover:bg-white/3 hover:text-white",
+                        : "text-white/90 hover:bg-white/3 hover:text-white",
                     )}
                   >
                     {active && (
@@ -124,7 +124,7 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
                     <Icon
                       className={clsx(
                         "h-4 w-4 shrink-0 transition",
-                        active ? "text-brand-orange" : "text-white/40 group-hover:text-white/70",
+                        active ? "text-brand-orange" : "text-white/85 group-hover:text-white/85",
                       )}
                     />
                     <span className="flex-1 truncate">{label}</span>
@@ -148,7 +148,7 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
             "flex items-center gap-3 rounded-lg px-3.5 py-2 text-sm font-medium transition",
             isActive("/portal/settings")
               ? "bg-white/6 text-white"
-              : "text-white/55 hover:bg-white/3 hover:text-white",
+              : "text-white/90 hover:bg-white/3 hover:text-white",
           )}
         >
           <Settings className="h-4 w-4" />
@@ -160,12 +160,12 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-white">{user.name}</p>
-            <p className="truncate text-[10px] text-white/40">{user.email}</p>
+            <p className="truncate text-[10px] text-white/85">{user.email}</p>
           </div>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/auth/login" })}
-            className="rounded-md p-1.5 text-white/40 transition hover:bg-white/5 hover:text-white"
+            className="rounded-md p-1.5 text-white/85 transition hover:bg-white/5 hover:text-white"
             aria-label="Sign out"
           >
             <LogOut className="h-4 w-4" />

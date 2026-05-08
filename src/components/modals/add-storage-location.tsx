@@ -88,14 +88,14 @@ export default function AddStorageLocationDialog({
                     <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
                       Add new storage location
                     </h2>
-                    <p className="mt-1 text-xs text-white/50">
+                    <p className="mt-1 text-xs text-white/90">
                       Warehouses, yards, or sub-stores where stock is physically held.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={close}
-                    className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+                    className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -109,7 +109,7 @@ export default function AddStorageLocationDialog({
                     <div>
                       <FieldLabel>Code *</FieldLabel>
                       <div className="relative">
-                        <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                         <input
                           name="code"
                           className={`${fieldClass} pl-9`}
@@ -122,7 +122,7 @@ export default function AddStorageLocationDialog({
                     <div>
                       <FieldLabel>Label *</FieldLabel>
                       <div className="relative">
-                        <Warehouse className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Warehouse className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                         <input
                           name="label"
                           className={`${fieldClass} pl-9`}
@@ -135,7 +135,7 @@ export default function AddStorageLocationDialog({
                     <div className="sm:col-span-2">
                       <FieldLabel>Address</FieldLabel>
                       <div className="relative">
-                        <MapPin className="pointer-events-none absolute left-3 top-3 h-3.5 w-3.5 text-white/40" />
+                        <MapPin className="pointer-events-none absolute left-3 top-3 h-3.5 w-3.5 text-white/85" />
                         <textarea
                           name="address"
                           rows={2}
@@ -149,7 +149,7 @@ export default function AddStorageLocationDialog({
                       <button
                         type="button"
                         onClick={close}
-                        className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                        className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                       >
                         Cancel
                       </button>

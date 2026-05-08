@@ -106,7 +106,7 @@ export default function InventoryPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white">
                 <th className="px-6 py-3 font-medium">Serial</th>
                 <th className="px-6 py-3 font-medium">Item</th>
                 <th className="px-6 py-3 font-medium">Category</th>
@@ -122,14 +122,14 @@ export default function InventoryPage() {
             <tbody>
               {loading && items.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/85">
                     Loading inventory…
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/40">
-                    No items yet. Click <span className="text-white/70">Add item</span> to register your first SKU.
+                  <td colSpan={10} className="px-6 py-10 text-center text-xs text-white/85">
+                    No items yet. Click <span className="text-white/85">Add item</span> to register your first SKU.
                   </td>
                 </tr>
               ) : (
@@ -147,13 +147,13 @@ export default function InventoryPage() {
                     <td className="px-6 py-3.5 text-right">
                       <MonoCell>{it.currentStock.toLocaleString()}</MonoCell>
                     </td>
-                    <td className="px-6 py-3.5 text-right text-white/55">
+                    <td className="px-6 py-3.5 text-right text-white/90">
                       <MonoCell>{it.reorderLevel}</MonoCell>
                     </td>
-                    <td className="px-6 py-3.5 text-right text-white/55">
+                    <td className="px-6 py-3.5 text-right text-white/90">
                       <MonoCell>{it.minStock}</MonoCell>
                     </td>
-                    <td className="px-6 py-3.5 text-right text-white/55">
+                    <td className="px-6 py-3.5 text-right text-white/90">
                       <MonoCell>{it.maxStock}</MonoCell>
                     </td>
                     <td className="px-6 py-3.5">
@@ -167,7 +167,7 @@ export default function InventoryPage() {
                           type="button"
                           onClick={() => setEditing(it)}
                           aria-label={`Edit ${it.name}`}
-                          className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-brand-orange-bright"
+                          className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-brand-orange-bright"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -175,7 +175,7 @@ export default function InventoryPage() {
                           type="button"
                           onClick={() => setDeleting(it)}
                           aria-label={`Delete ${it.name}`}
-                          className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
+                          className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -188,7 +188,7 @@ export default function InventoryPage() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/50">
+        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/90">
           <p>
             {data
               ? `Showing ${items.length} of ${data.total} item${data.total === 1 ? "" : "s"}`

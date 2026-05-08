@@ -72,7 +72,7 @@ export default function ProjectsPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white">
                 <th className="px-6 py-3 font-medium">WBS</th>
                 <th className="px-6 py-3 font-medium">Project name</th>
                 <th className="px-6 py-3 font-medium">Location</th>
@@ -84,14 +84,14 @@ export default function ProjectsPage() {
             <tbody>
               {loading && projects.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/85">
                     Loading projects…
                   </td>
                 </tr>
               ) : projects.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/40">
-                    No projects yet. Click <span className="text-white/70">Add project</span> to start.
+                  <td colSpan={6} className="px-6 py-10 text-center text-xs text-white/85">
+                    No projects yet. Click <span className="text-white/85">Add project</span> to start.
                   </td>
                 </tr>
               ) : (
@@ -118,7 +118,7 @@ export default function ProjectsPage() {
                         <button
                           type="button"
                           onClick={() => setSelected(p)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange-bright"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange-bright"
                         >
                           <Eye className="h-3.5 w-3.5" /> View details
                         </button>

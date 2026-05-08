@@ -87,16 +87,16 @@ export default function EditSupplierDialog({
                 <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
                   Edit supplier
                 </h2>
-                <p className="mt-1 text-xs text-white/50">
+                <p className="mt-1 text-xs text-white/90">
                   Update details for{" "}
-                  <span className="font-medium text-white/80">{supplier.name}</span>.
+                  <span className="font-medium text-white/90">{supplier.name}</span>.
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
@@ -111,7 +111,7 @@ export default function EditSupplierDialog({
               <div className="sm:col-span-2">
                 <FieldLabel>Supplier name *</FieldLabel>
                 <div className="relative">
-                  <Building2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <Building2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="name"
                     className={`${fieldClass} pl-9`}
@@ -124,7 +124,7 @@ export default function EditSupplierDialog({
               <div>
                 <FieldLabel>Contact name</FieldLabel>
                 <div className="relative">
-                  <User className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="contactName"
                     className={`${fieldClass} pl-9`}
@@ -136,7 +136,7 @@ export default function EditSupplierDialog({
               <div>
                 <FieldLabel>Email</FieldLabel>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="email"
                     type="email"
@@ -149,7 +149,7 @@ export default function EditSupplierDialog({
               <div>
                 <FieldLabel>Phone</FieldLabel>
                 <div className="relative">
-                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="phone"
                     className={`${fieldClass} pl-9`}
@@ -159,7 +159,7 @@ export default function EditSupplierDialog({
               </div>
 
               <div className="flex items-end">
-                <label className="inline-flex items-center gap-2 text-sm text-white/80">
+                <label className="inline-flex items-center gap-2 text-sm text-white/90">
                   <input
                     name="isActive"
                     type="checkbox"
@@ -173,7 +173,7 @@ export default function EditSupplierDialog({
               <div className="sm:col-span-2">
                 <FieldLabel>Address</FieldLabel>
                 <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-3 top-3 h-3.5 w-3.5 text-white/40" />
+                  <MapPin className="pointer-events-none absolute left-3 top-3 h-3.5 w-3.5 text-white/85" />
                   <textarea
                     name="address"
                     rows={2}
@@ -187,7 +187,7 @@ export default function EditSupplierDialog({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                  className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                 >
                   Cancel
                 </button>

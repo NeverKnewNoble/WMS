@@ -110,14 +110,14 @@ export default function AddItemDialog({
                     <h2 className="text-lg font-semibold tracking-tight text-white">
                       Add new item
                     </h2>
-                    <p className="mt-1 text-xs text-white/50">
+                    <p className="mt-1 text-xs text-white/90">
                       Register a new SKU in the inventory.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={close}
-                    className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+                    className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -136,7 +136,7 @@ export default function AddItemDialog({
                         placeholder="e.g. Cement 50kg"
                         required
                       />
-                      <p className="mt-2 text-[11px] text-white/40">
+                      <p className="mt-2 text-[11px] text-white/85">
                         A serial number (e.g. <span className="font-mono text-brand-orange/85">JC-00042</span>) is generated automatically when you save.
                       </p>
                     </div>
@@ -233,7 +233,7 @@ export default function AddItemDialog({
                       />
                     </div>
 
-                    <p className="sm:col-span-2 text-[11px] text-white/40">
+                    <p className="sm:col-span-2 text-[11px] text-white/85">
                       Stock on hand is updated automatically as you record GRNs and MRNs.
                     </p>
 
@@ -241,7 +241,7 @@ export default function AddItemDialog({
                       <button
                         type="button"
                         onClick={close}
-                        className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                        className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                       >
                         Cancel
                       </button>

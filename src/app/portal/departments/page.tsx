@@ -58,7 +58,7 @@ export default function DepartmentsPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white">
                 <th className="px-6 py-3 font-medium">Code</th>
                 <th className="px-6 py-3 font-medium">Label</th>
                 <th className="px-6 py-3 font-medium">Created</th>
@@ -68,14 +68,14 @@ export default function DepartmentsPage() {
             <tbody>
               {loading && departments.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={4} className="px-6 py-10 text-center text-xs text-white/85">
                     Loading departments…
                   </td>
                 </tr>
               ) : departments.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-10 text-center text-xs text-white/40">
-                    No departments yet. Click <span className="text-white/70">Add department</span> to start.
+                  <td colSpan={4} className="px-6 py-10 text-center text-xs text-white/85">
+                    No departments yet. Click <span className="text-white/85">Add department</span> to start.
                   </td>
                 </tr>
               ) : (
@@ -98,14 +98,14 @@ export default function DepartmentsPage() {
                         <button
                           type="button"
                           onClick={() => setEditing(d)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange-bright"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange-bright"
                         >
                           <Pencil className="h-3.5 w-3.5" /> Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleting(d)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-200"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-200"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Delete
                         </button>

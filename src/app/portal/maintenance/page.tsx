@@ -89,7 +89,7 @@ export default function MaintenancePage() {
                   "inline-flex items-center gap-2 rounded-full px-5 py-1.5 text-xs font-medium transition",
                   filter === f.key
                     ? "bg-white text-zinc-900"
-                    : "text-white/60 hover:text-white",
+                    : "text-white/95 hover:text-white",
                 )}
               >
                 {f.label}
@@ -98,7 +98,7 @@ export default function MaintenancePage() {
                     "rounded-full px-1.5 py-0.5 font-mono text-[10px]",
                     filter === f.key
                       ? "bg-zinc-900/10 text-zinc-900/70"
-                      : "bg-white/8 text-white/55",
+                      : "bg-white/8 text-white/90",
                   )}
                 >
                   {count}
@@ -129,7 +129,7 @@ export default function MaintenancePage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white">
                 <th className="px-6 py-3 font-medium">Type</th>
                 <th className="px-6 py-3 font-medium">Receipt no</th>
                 <th className="px-6 py-3 font-medium">Date</th>
@@ -149,13 +149,13 @@ export default function MaintenancePage() {
             <tbody>
               {loading && rows.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={14} className="px-6 py-10 text-center text-xs text-white/85">
                     Loading maintenance ledger…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={14} className="px-6 py-10 text-center text-xs text-white/85">
                     No movements match the current filter.
                   </td>
                 </tr>
@@ -198,7 +198,7 @@ export default function MaintenancePage() {
                             type="button"
                             onClick={() => setDeleting(r)}
                             aria-label={`Delete ${r.refNo}`}
-                            className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
+                            className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -212,7 +212,7 @@ export default function MaintenancePage() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/50">
+        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/90">
           <p>
             Showing {rows.length}{" "}
             {filter === "all" ? "movements" : filter === "in" ? "inbound" : "outbound"}{" "}

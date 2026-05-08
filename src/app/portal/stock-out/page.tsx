@@ -81,7 +81,7 @@ export default function StockOutPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white">
                 <th className="px-6 py-3 font-medium">MRN</th>
                 <th className="px-6 py-3 font-medium">Date</th>
                 <th className="px-6 py-3 font-medium">Item</th>
@@ -98,14 +98,14 @@ export default function StockOutPage() {
             <tbody>
               {loading && movements.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={11} className="px-6 py-10 text-center text-xs text-white/85">
                     Loading MRNs…
                   </td>
                 </tr>
               ) : movements.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-10 text-center text-xs text-white/40">
-                    No MRNs yet. Click <span className="text-white/70">Add stock out</span> to issue materials.
+                  <td colSpan={11} className="px-6 py-10 text-center text-xs text-white/85">
+                    No MRNs yet. Click <span className="text-white/85">Add stock out</span> to issue materials.
                   </td>
                 </tr>
               ) : (
@@ -130,7 +130,7 @@ export default function StockOutPage() {
                             {m.project.wbs}
                           </span>
                         ) : (
-                          <span className="text-white/40">—</span>
+                          <span className="text-white/85">—</span>
                         )}
                       </td>
                       <td className="px-6 py-3.5"><MonoCell>{line?.itemRfq ?? "—"}</MonoCell></td>
@@ -142,7 +142,7 @@ export default function StockOutPage() {
                             type="button"
                             onClick={() => setDeleting(m)}
                             aria-label={`Delete ${m.refNo}`}
-                            className="rounded-md p-1.5 text-white/50 transition hover:bg-white/5 hover:text-rose-300"
+                            className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -156,7 +156,7 @@ export default function StockOutPage() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/50">
+        <div className="flex items-center justify-between border-t border-white/5 px-6 py-4 text-xs text-white/90">
           <p>{data ? `Showing ${movements.length} of ${data.total} entries` : "—"}</p>
         </div>
       </Surface>

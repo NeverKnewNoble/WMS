@@ -35,7 +35,7 @@ export default function Hero() {
           <Link href="/" aria-label="Joshob Construction Co. Ltd." className="inline-flex">
             <JoshobWordmark size="sm" />
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium text-white/70 sm:flex">
+          <nav className="hidden items-center gap-6 text-sm font-medium text-white/85 sm:flex">
             <a href="#features" className="transition hover:text-white">
               Capabilities
             </a>
@@ -61,7 +61,7 @@ export default function Hero() {
             <span className="text-brand-orange">Sites, in sync.</span>
           </h1>
 
-          <p className="mt-7 max-w-2xl text-pretty text-lg leading-relaxed text-white/70 sm:text-xl">
+          <p className="mt-7 max-w-2xl text-pretty text-lg leading-relaxed text-white/85 sm:text-xl">
             One source of truth for every bag of cement, every length of rebar,
             every tool that leaves the yard — across every Joshob Construction
             site.
@@ -112,7 +112,7 @@ export default function Hero() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/45">
+      <dt className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/85">
         {label}
       </dt>
       <dd className="mt-1.5 font-mark text-3xl tracking-tight text-white sm:text-4xl">

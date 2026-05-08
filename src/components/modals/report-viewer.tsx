@@ -118,7 +118,7 @@ export default function ReportViewerDialog({
                   <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">
                     {data?.title ?? report.title}
                   </h2>
-                  <p className="mt-1 max-w-2xl text-xs text-white/55">
+                  <p className="mt-1 max-w-2xl text-xs text-white/90">
                     {report.description}
                   </p>
                 </div>
@@ -126,7 +126,7 @@ export default function ReportViewerDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+                className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -155,7 +155,7 @@ export default function ReportViewerDialog({
             <div className="overflow-x-auto">
               <table className="w-full min-w-max text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur">
-                  <tr className="border-b border-white/8 text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  <tr className="border-b border-white/8 text-[10px] uppercase tracking-[0.2em] text-white">
                     {columns.map((c) => (
                       <th
                         key={c.key}
@@ -173,7 +173,7 @@ export default function ReportViewerDialog({
                     <tr>
                       <td
                         colSpan={columns.length || 1}
-                        className="px-6 py-10 text-center text-xs text-white/40"
+                        className="px-6 py-10 text-center text-xs text-white/85"
                       >
                         Loading report…
                       </td>
@@ -182,7 +182,7 @@ export default function ReportViewerDialog({
                     <tr>
                       <td
                         colSpan={columns.length || 1}
-                        className="px-6 py-10 text-center text-xs text-white/40"
+                        className="px-6 py-10 text-center text-xs text-white/85"
                       >
                         No data for this report yet.
                       </td>
@@ -213,9 +213,9 @@ export default function ReportViewerDialog({
 
           {/* FOOTER */}
           <div className="flex shrink-0 flex-col gap-3 border-t border-white/8 bg-zinc-950/40 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-            <p className="text-xs text-white/50">
+            <p className="text-xs text-white/90">
               {rows.length} row{rows.length === 1 ? "" : "s"} ·{" "}
-              <span className="text-white/35">
+              <span className="text-white/85">
                 As of {new Date().toISOString().slice(0, 10)}
               </span>
             </p>

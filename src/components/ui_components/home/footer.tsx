@@ -25,7 +25,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-4 lg:grid-cols-5">
           <div className="col-span-2 lg:col-span-2">
             <JoshobWordmark size="sm" />
-            <p className="mt-6 max-w-sm text-sm leading-relaxed text-white/60">
+            <p className="mt-6 max-w-sm text-sm leading-relaxed text-white/95">
               Internal operations portal for Joshob Construction Co. Ltd. —
               from the moment a delivery hits the gate to the moment a length
               of rebar is cut on site.
@@ -39,7 +39,7 @@ export default function Footer() {
                 id="footer-email"
                 type="email"
                 placeholder="you@joshobconstruction.com"
-                className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
+                className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/85 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
               <button
                 type="submit"
@@ -71,7 +71,7 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-sm text-white/50 sm:flex-row sm:items-center">
+        <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-sm text-white/90 sm:flex-row sm:items-center">
           <p>
             © {new Date().getFullYear()} Joshob Construction Co. Ltd. All rights reserved.
           </p>

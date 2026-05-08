@@ -55,7 +55,7 @@ export default function ReorderAlertsPage() {
           sub="tracked alerts"
           count={alerts.length}
           ring="ring-white/10 bg-white/3"
-          iconClass="text-white/70"
+          iconClass="text-white/85"
           Icon={List}
         />
         <SummaryCard
@@ -86,11 +86,11 @@ export default function ReorderAlertsPage() {
 
       <div className="mt-8 space-y-3">
         {loading && alerts.length === 0 ? (
-          <Surface className="p-8 text-center text-xs text-white/40">
+          <Surface className="p-8 text-center text-xs text-white/85">
             Loading reorder alerts…
           </Surface>
         ) : alerts.length === 0 ? (
-          <Surface className="p-8 text-center text-xs text-white/40">
+          <Surface className="p-8 text-center text-xs text-white/85">
             🎉 Every item is above its reorder threshold.
           </Surface>
         ) : (
@@ -117,7 +117,7 @@ export default function ReorderAlertsPage() {
                     </span>
                     <div>
                       <h3 className="text-base font-semibold text-white">{a.name}</h3>
-                      <p className="mt-0.5 text-xs uppercase tracking-widest text-white/45">
+                      <p className="mt-0.5 text-xs uppercase tracking-widest text-white/85">
                         {a.category}
                       </p>
                     </div>
@@ -137,7 +137,7 @@ export default function ReorderAlertsPage() {
                       valueClass="text-emerald-300"
                     />
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
                         Last supplier
                       </p>
                       <p className="mt-1 text-sm text-white">
@@ -184,7 +184,7 @@ function SummaryCard({
         <p className="font-mono text-2xl font-semibold text-white">{count}</p>
       </div>
       <p className="mt-3 text-sm font-medium text-white">{label}</p>
-      <p className="mt-0.5 text-xs text-white/50">{sub}</p>
+      <p className="mt-0.5 text-xs text-white/90">{sub}</p>
     </Surface>
   );
 }
@@ -200,7 +200,7 @@ function Stat({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
         {label}
       </p>
       <p className={clsx("mt-1 font-mono text-base font-semibold text-white", valueClass)}>

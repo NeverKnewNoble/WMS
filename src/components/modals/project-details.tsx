@@ -155,13 +155,13 @@ export default function ProjectDetailsDialog({
                   <h2 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                     {project.name}
                   </h2>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/60">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/95">
                     <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-white/40" />
+                      <MapPin className="h-3.5 w-3.5 text-white/85" />
                       {project.location}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <User2 className="h-3.5 w-3.5 text-white/40" />
+                      <User2 className="h-3.5 w-3.5 text-white/85" />
                       {manager}
                     </span>
                     {status && (
@@ -176,7 +176,7 @@ export default function ProjectDetailsDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+                className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -222,11 +222,11 @@ export default function ProjectDetailsDialog({
                     <h3 className="text-sm font-semibold text-white">
                       Top materials issued
                     </h3>
-                    <p className="mt-0.5 text-xs text-white/45">
+                    <p className="mt-0.5 text-xs text-white/85">
                       Composition of issuances against this WBS.
                     </p>
                   </div>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-white">
                     last 30 days
                   </span>
                 </div>
@@ -235,12 +235,12 @@ export default function ProjectDetailsDialog({
                   {materials.map((m) => (
                     <li key={m.name}>
                       <div className="flex items-baseline justify-between text-xs">
-                        <span className="font-medium text-white/85">
+                        <span className="font-medium text-white/95">
                           {m.name}
                         </span>
-                        <span className="font-mono text-[12px] text-white/70">
+                        <span className="font-mono text-[12px] text-white/85">
                           {m.qty.toLocaleString()}{" "}
-                          <span className="text-white/40">{m.unit}</span>
+                          <span className="text-white/85">{m.unit}</span>
                         </span>
                       </div>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
@@ -262,32 +262,32 @@ export default function ProjectDetailsDialog({
                   </h3>
                   <dl className="mt-4 space-y-3 text-xs">
                     <InfoRow
-                      icon={<MapPin className="h-3.5 w-3.5 text-white/40" />}
+                      icon={<MapPin className="h-3.5 w-3.5 text-white/85" />}
                       label="Location"
                       value={project.location}
                     />
                     <InfoRow
-                      icon={<User2 className="h-3.5 w-3.5 text-white/40" />}
+                      icon={<User2 className="h-3.5 w-3.5 text-white/85" />}
                       label="Manager"
                       value={manager}
                     />
                     <InfoRow
                       icon={
-                        <CalendarRange className="h-3.5 w-3.5 text-white/40" />
+                        <CalendarRange className="h-3.5 w-3.5 text-white/85" />
                       }
                       label="Started"
                       value="2026-01-12"
                     />
                     <InfoRow
                       icon={
-                        <CalendarRange className="h-3.5 w-3.5 text-white/40" />
+                        <CalendarRange className="h-3.5 w-3.5 text-white/85" />
                       }
                       label="Est. end"
                       value="2026-09-30"
                     />
                     <InfoRow
                       icon={
-                        <ShieldCheck className="h-3.5 w-3.5 text-white/40" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-white/85" />
                       }
                       label="Compliance"
                       value="On track"
@@ -317,20 +317,20 @@ export default function ProjectDetailsDialog({
                           <PackageMinus className="h-3.5 w-3.5 text-amber-300" />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-white/85">
+                          <p className="truncate font-medium text-white/95">
                             {m.item}
                           </p>
-                          <p className="truncate text-[11px] text-white/45">
+                          <p className="truncate text-[11px] text-white/85">
                             {m.mrn} · {m.date} · {m.issuedTo}
                           </p>
                         </div>
-                        <span className="font-mono text-[11.5px] text-white/75">
+                        <span className="font-mono text-[11.5px] text-white/85">
                           {m.qty} {m.unit}
                         </span>
                       </li>
                     ))}
                     {recentMrns.length === 0 && (
-                      <li className="py-4 text-center text-xs text-white/40">
+                      <li className="py-4 text-center text-xs text-white/85">
                         No MRNs against this project yet.
                       </li>
                     )}
@@ -342,8 +342,8 @@ export default function ProjectDetailsDialog({
 
           {/* FOOTER */}
           <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/8 bg-zinc-950/40 px-6 py-4 sm:px-8">
-            <span className="hidden text-[11px] uppercase tracking-[0.2em] text-white/35 sm:inline">
-              Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/70">Esc</kbd> to close
+            <span className="hidden text-[11px] uppercase tracking-[0.2em] text-white/85 sm:inline">
+              Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/85">Esc</kbd> to close
             </span>
             <div className="flex items-center gap-2.5">
               <button
@@ -356,7 +356,7 @@ export default function ProjectDetailsDialog({
               <button
                 type="button"
                 onClick={() => onEdit?.(project)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/90 transition hover:bg-white/10 hover:text-white"
               >
                 <Pencil className="h-3.5 w-3.5" /> Edit project
               </button>
@@ -391,7 +391,7 @@ function KpiTile({
 }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-white/8 bg-white/3 p-4">
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-white/45">
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-white/85">
         <span>{label}</span>
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/5 ring-1 ring-inset ring-white/10">
           {icon}
@@ -400,7 +400,7 @@ function KpiTile({
       <p className="mt-2 font-mono text-xl font-semibold tracking-tight text-white">
         {value}
       </p>
-      <p className="mt-0.5 text-[11px] text-white/45">{sub}</p>
+      <p className="mt-0.5 text-[11px] text-white/85">{sub}</p>
       {typeof progress === "number" && (
         <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/5">
           <div
@@ -424,11 +424,11 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="inline-flex items-center gap-1.5 text-white/55">
+      <span className="inline-flex items-center gap-1.5 text-white/90">
         {icon}
         {label}
       </span>
-      <span className="font-medium text-white/85">{value}</span>
+      <span className="font-medium text-white/95">{value}</span>
     </div>
   );
 }

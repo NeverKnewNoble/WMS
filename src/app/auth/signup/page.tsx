@@ -78,7 +78,7 @@ export default function SignupPage() {
             <JoshobWordmark size="md" />
           </Link>
 
-          <ul className="space-y-4 text-sm text-white/80">
+          <ul className="space-y-4 text-sm text-white/90">
             {[
               "Every GRN, MRN, and site issue logged in real time",
               "Reorder alerts before a project hits a stockout",
@@ -109,7 +109,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <Link
             href="/"
-            className="mb-10 inline-flex items-center gap-2 text-sm text-white/60 transition hover:text-white lg:hidden"
+            className="mb-10 inline-flex items-center gap-2 text-sm text-white/95 transition hover:text-white lg:hidden"
           >
             <svg
               className="h-4 w-4"
@@ -131,7 +131,7 @@ export default function SignupPage() {
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             Create your account
           </h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-white/95">
             One source of truth for stock, sites, and project consumption.
           </p>
 
@@ -139,7 +139,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/60"
+                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/95"
               >
                 Full name
               </label>
@@ -158,7 +158,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/60"
+                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/95"
               >
                 Work email
               </label>
@@ -177,7 +177,7 @@ export default function SignupPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/60"
+                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/95"
               >
                 Password
               </label>
@@ -194,7 +194,7 @@ export default function SignupPage() {
               />
             </div>
 
-            <label className="flex items-start gap-2 text-sm text-white/60">
+            <label className="flex items-start gap-2 text-sm text-white/95">
               <input
                 type="checkbox"
                 required
@@ -233,7 +233,7 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <p className="mt-10 text-center text-sm text-white/60">
+          <p className="mt-10 text-center text-sm text-white/95">
             Already have an account?{" "}
             <Link
               href="/auth/login"

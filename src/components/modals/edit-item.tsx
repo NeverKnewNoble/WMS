@@ -106,9 +106,9 @@ export default function EditItemDialog({
                 <h2 className="text-lg font-semibold tracking-tight text-white">
                   Edit item
                 </h2>
-                <p className="mt-1 text-xs text-white/50">
+                <p className="mt-1 text-xs text-white/90">
                   Update the registry record for{" "}
-                  <span className="font-medium text-white/80">{item.name}</span>{" "}
+                  <span className="font-medium text-white/90">{item.name}</span>{" "}
                   ({item.rfq}).
                 </p>
               </div>
@@ -116,7 +116,7 @@ export default function EditItemDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
@@ -141,7 +141,7 @@ export default function EditItemDialog({
                 <FieldLabel>Serial</FieldLabel>
                 <div className="mt-1.5 flex w-full items-center rounded-lg border border-white/10 bg-white/3 px-3 py-2.5">
                   <span className="font-mono text-sm text-brand-orange/90">{item.rfq}</span>
-                  <span className="ml-auto text-[10px] uppercase tracking-[0.18em] text-white/35">
+                  <span className="ml-auto text-[10px] uppercase tracking-[0.18em] text-white/85">
                     Auto · immutable
                   </span>
                 </div>
@@ -254,7 +254,7 @@ export default function EditItemDialog({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                  className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                 >
                   Cancel
                 </button>

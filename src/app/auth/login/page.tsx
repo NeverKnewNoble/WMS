@@ -73,7 +73,7 @@ function LoginForm() {
               &ldquo;Every bag of cement, every length of rebar — accounted for
               before the truck leaves the gate.&rdquo;
             </p>
-            <footer className="mt-4 text-sm text-white/60">
+            <footer className="mt-4 text-sm text-white/95">
               — Site Engineer, Joshob Construction Co. Ltd.
             </footer>
           </blockquote>
@@ -84,7 +84,7 @@ function LoginForm() {
         <div className="w-full max-w-md">
           <Link
             href="/"
-            className="mb-10 inline-flex items-center gap-2 text-sm text-white/60 transition hover:text-white lg:hidden"
+            className="mb-10 inline-flex items-center gap-2 text-sm text-white/95 transition hover:text-white lg:hidden"
           >
             <svg
               className="h-4 w-4"
@@ -106,7 +106,7 @@ function LoginForm() {
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             Welcome back
           </h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-white/95">
             Sign in to manage stock, sites, and project consumption.
           </p>
 
@@ -114,7 +114,7 @@ function LoginForm() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/60"
+                className="block text-xs font-medium uppercase tracking-[0.15em] text-white/95"
               >
                 Email
               </label>
@@ -134,7 +134,7 @@ function LoginForm() {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-xs font-medium uppercase tracking-[0.15em] text-white/60"
+                  className="block text-xs font-medium uppercase tracking-[0.15em] text-white/95"
                 >
                   Password
                 </label>
@@ -157,7 +157,7 @@ function LoginForm() {
               />
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-white/60">
+            <label className="flex items-center gap-2 text-sm text-white/95">
               <input
                 type="checkbox"
                 className="h-4 w-4 rounded border-white/20 bg-white/5"
@@ -183,7 +183,7 @@ function LoginForm() {
             </button>
           </form>
 
-          <p className="mt-10 text-center text-sm text-white/60">
+          <p className="mt-10 text-center text-sm text-white/95">
             New here?{" "}
             <Link
               href="/auth/signup"

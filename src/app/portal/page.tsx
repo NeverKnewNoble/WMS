@@ -66,9 +66,9 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold tracking-tight text-white">
                 Stock in vs stock out
               </h2>
-              <p className="mt-1 text-xs text-white/50">Last 7 days</p>
+              <p className="mt-1 text-xs text-white/90">Last 7 days</p>
             </div>
-            <div className="flex items-center gap-4 text-xs text-white/60">
+            <div className="flex items-center gap-4 text-xs text-white/95">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-sm bg-emerald-400" /> In
               </span>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
                         style={{ height: `${(d.out / weekDayMax) * 100}%` }}
                       />
                     </div>
-                    <span className="text-[10px] uppercase tracking-widest text-white/40">
+                    <span className="text-[10px] uppercase tracking-widest text-white/85">
                       {d.day}
                     </span>
                   </div>
@@ -120,17 +120,17 @@ export default function DashboardPage() {
           </div>
           <ul className="mt-6 space-y-4 text-sm">
             <li className="flex items-center justify-between">
-              <span className="text-white/70">Net flow today</span>
+              <span className="text-white/85">Net flow today</span>
               <MonoCell>
                 {kpis ? (kpis.todayStockIn - kpis.todayStockOut).toLocaleString() : "—"}
               </MonoCell>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-white/70">Items needing reorder</span>
+              <span className="text-white/85">Items needing reorder</span>
               <MonoCell>{kpis?.itemsBelowReorder ?? "—"}</MonoCell>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-white/70">Total units on hand</span>
+              <span className="text-white/85">Total units on hand</span>
               <MonoCell>{kpis?.totalInStock?.toLocaleString() ?? "—"}</MonoCell>
             </li>
           </ul>
@@ -160,13 +160,13 @@ function KpiCard({
       <div className={`pointer-events-none absolute inset-0 bg-linear-to-br ${accent} opacity-60`} />
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/85">
             {label}
           </p>
           <p className="mt-3 font-mono text-3xl font-semibold tracking-tight text-white">
             {value}
           </p>
-          <p className="mt-1 text-xs text-white/55">{sub}</p>
+          <p className="mt-1 text-xs text-white/90">{sub}</p>
         </div>
         <span
           className={`flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 ${iconClass}`}

@@ -114,16 +114,16 @@ export default function EditProjectDialog({
                 <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
                   Edit project
                 </h2>
-                <p className="mt-1 text-xs text-white/50">
+                <p className="mt-1 text-xs text-white/90">
                   Update details for{" "}
-                  <span className="font-medium text-white/80">{project.name}</span>.
+                  <span className="font-medium text-white/90">{project.name}</span>.
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
@@ -138,7 +138,7 @@ export default function EditProjectDialog({
               <div>
                 <FieldLabel>WBS code *</FieldLabel>
                 <div className="relative">
-                  <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="wbs"
                     className={`${fieldClass} pl-9`}
@@ -161,7 +161,7 @@ export default function EditProjectDialog({
               <div>
                 <FieldLabel>Location *</FieldLabel>
                 <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="location"
                     className={`${fieldClass} pl-9`}
@@ -218,7 +218,7 @@ export default function EditProjectDialog({
               <div>
                 <FieldLabel>Start date</FieldLabel>
                 <div className="relative">
-                  <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="startDate"
                     type="date"
@@ -231,7 +231,7 @@ export default function EditProjectDialog({
               <div>
                 <FieldLabel>Estimated end date</FieldLabel>
                 <div className="relative">
-                  <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <CalendarRange className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                   <input
                     name="estimatedEndDate"
                     type="date"
@@ -266,7 +266,7 @@ export default function EditProjectDialog({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                  className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                 >
                   Cancel
                 </button>

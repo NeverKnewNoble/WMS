@@ -67,7 +67,7 @@ export default function SettingsTabs({
                 "inline-flex items-center gap-2 rounded-full px-5 py-1.5 text-xs font-medium transition",
                 active
                   ? "bg-white text-zinc-900"
-                  : "text-white/60 hover:text-white",
+                  : "text-white/95 hover:text-white",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -108,7 +108,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
             <h2 className="text-base font-semibold text-white">
               {user.fullName}
             </h2>
-            <p className="mt-0.5 text-xs text-white/55">
+            <p className="mt-0.5 text-xs text-white/90">
               {user.email} · {user.role.label}
             </p>
             {user.isVerified && (
@@ -120,7 +120,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
         </div>
         <button
           type="button"
-          className="self-start rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white/80 transition hover:bg-white/10 sm:self-auto"
+          className="self-start rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white/90 transition hover:bg-white/10 sm:self-auto"
         >
           Change avatar
         </button>
@@ -141,7 +141,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
         <div>
           <FieldLabel>Email</FieldLabel>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+            <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
             <input
               type="email"
               className={`${fieldClass} pl-9`}
@@ -153,7 +153,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
         <div>
           <FieldLabel>Phone</FieldLabel>
           <div className="relative">
-            <Phone className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+            <Phone className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
             <input
               type="tel"
               className={`${fieldClass} pl-9`}
@@ -204,7 +204,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
         <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-2 sm:-mx-8 sm:px-8">
           <button
             type="button"
-            className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+            className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
           >
             Reset
           </button>
@@ -238,7 +238,7 @@ function NotificationsTab({
           <h2 className="text-base font-semibold text-white">
             Notification preferences
           </h2>
-          <p className="mt-1 text-xs text-white/55">
+          <p className="mt-1 text-xs text-white/90">
             Choose which events trigger notifications. Changes save instantly.
           </p>
         </div>
@@ -252,7 +252,7 @@ function NotificationsTab({
           >
             <div>
               <p className="text-sm font-medium text-white">{t.label}</p>
-              <p className="mt-0.5 text-xs text-white/50">{t.description}</p>
+              <p className="mt-0.5 text-xs text-white/90">{t.description}</p>
             </div>
             <button
               type="button"

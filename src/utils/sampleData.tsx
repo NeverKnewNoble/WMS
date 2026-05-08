@@ -165,7 +165,7 @@ export const maintenanceStockOut: MaintenanceReceipt[] = [
 // ── Reorder Alerts ─────────────────────────────────────────────────────
 
 export const reorderSummary: AlertSummary[] = [
-  { key: "all", label: "All items", sub: "tracked alerts", count: 4, icon: List, ring: "ring-white/10 bg-white/3", iconClass: "text-white/70" },
+  { key: "all", label: "All items", sub: "tracked alerts", count: 4, icon: List, ring: "ring-white/10 bg-white/3", iconClass: "text-white/85" },
   { key: "critical", label: "Critical", sub: "out of stock", count: 1, icon: AlertOctagon, ring: "ring-rose-500/30 bg-rose-500/5", iconClass: "text-rose-300" },
   { key: "low", label: "Low", sub: "at reorder level", count: 2, icon: AlertTriangle, ring: "ring-amber-400/30 bg-amber-400/5", iconClass: "text-amber-300" },
   { key: "watch", label: "Watch", sub: "approaching reorder", count: 1, icon: Bell, ring: "ring-cyan-400/30 bg-cyan-400/5", iconClass: "text-cyan-300" },

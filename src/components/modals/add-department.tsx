@@ -87,14 +87,14 @@ export default function AddDepartmentDialog({
                     <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
                       Add new department
                     </h2>
-                    <p className="mt-1 text-xs text-white/50">
+                    <p className="mt-1 text-xs text-white/90">
                       Departments are used for staff assignment and material issue tracking.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={close}
-                    className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+                    className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -108,7 +108,7 @@ export default function AddDepartmentDialog({
                     <div>
                       <FieldLabel>Code *</FieldLabel>
                       <div className="relative">
-                        <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Hash className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                         <input
                           name="code"
                           className={`${fieldClass} pl-9`}
@@ -121,7 +121,7 @@ export default function AddDepartmentDialog({
                     <div>
                       <FieldLabel>Label *</FieldLabel>
                       <div className="relative">
-                        <Building className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                        <Building className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/85" />
                         <input
                           name="label"
                           className={`${fieldClass} pl-9`}
@@ -135,7 +135,7 @@ export default function AddDepartmentDialog({
                       <button
                         type="button"
                         onClick={close}
-                        className="rounded-full px-5 py-2 text-sm font-medium text-white/70 transition hover:text-white"
+                        className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
                       >
                         Cancel
                       </button>

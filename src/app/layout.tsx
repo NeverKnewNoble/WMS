@@ -47,7 +47,7 @@ export default function RootLayout({
             classNames: {
               toast:
                 "rounded-xl border border-white/10 bg-zinc-900 text-white shadow-lg shadow-black/40 ring-1 ring-inset ring-white/5",
-              description: "text-white/60",
+              description: "text-white/95",
             },
           }}
         />

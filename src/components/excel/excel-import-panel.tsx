@@ -187,7 +187,7 @@ function ImportResultModal({
                       ? "Import complete"
                       : "Import finished with issues"}
                 </h2>
-                <p className="mt-0.5 text-xs text-white/55">
+                <p className="mt-0.5 text-xs text-white/90">
                   {error
                     ? "The file could not be processed."
                     : `Bulk import of ${entityLabel} from Excel.`}
@@ -197,7 +197,7 @@ function ImportResultModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
@@ -217,13 +217,13 @@ function ImportResultModal({
 
                 {result.errors.length > 0 && (
                   <div className="mt-5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/55">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/90">
                       Row errors ({result.errors.length})
                     </p>
                     <div className="mt-2 max-h-72 overflow-y-auto rounded-xl border border-white/8 bg-white/2">
                       <table className="w-full text-left text-xs">
                         <thead className="sticky top-0 bg-zinc-900/95 backdrop-blur">
-                          <tr className="border-b border-white/8 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                          <tr className="border-b border-white/8 text-[10px] uppercase tracking-[0.18em] text-white/85">
                             <th className="px-3 py-2 font-medium w-16">Row</th>
                             <th className="px-3 py-2 font-medium">Problem</th>
                           </tr>
@@ -231,7 +231,7 @@ function ImportResultModal({
                         <tbody>
                           {result.errors.map((e, i) => (
                             <tr key={i} className="border-b border-white/5">
-                              <td className="px-3 py-2 font-mono text-white/70">{e.row}</td>
+                              <td className="px-3 py-2 font-mono text-white/85">{e.row}</td>
                               <td className="px-3 py-2 text-rose-200/90">{e.message}</td>
                             </tr>
                           ))}
@@ -275,7 +275,7 @@ function Stat({
     :                  "text-white/65";
   return (
     <div className="rounded-xl border border-white/8 bg-white/3 p-4">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">{label}</p>
+      <p className="text-[10px] uppercase tracking-[0.18em] text-white/85">{label}</p>
       <p className={`mt-1 text-2xl font-semibold tracking-tight ${cls}`}>{value}</p>
     </div>
   );

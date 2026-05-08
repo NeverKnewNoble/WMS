@@ -58,7 +58,7 @@ export default function SuppliersPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-white">
                 <th className="px-6 py-3 font-medium">Name</th>
                 <th className="px-6 py-3 font-medium">Contact</th>
                 <th className="px-6 py-3 font-medium">Email</th>
@@ -71,14 +71,14 @@ export default function SuppliersPage() {
             <tbody>
               {loading && suppliers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-xs text-white/40">
+                  <td colSpan={7} className="px-6 py-10 text-center text-xs text-white/85">
                     Loading suppliers…
                   </td>
                 </tr>
               ) : suppliers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-xs text-white/40">
-                    No suppliers yet. Click <span className="text-white/70">Add supplier</span> to start.
+                  <td colSpan={7} className="px-6 py-10 text-center text-xs text-white/85">
+                    No suppliers yet. Click <span className="text-white/85">Add supplier</span> to start.
                   </td>
                 </tr>
               ) : (
@@ -102,14 +102,14 @@ export default function SuppliersPage() {
                         <button
                           type="button"
                           onClick={() => setEditing(s)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange-bright"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange-bright"
                         >
                           <Pencil className="h-3.5 w-3.5" /> Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleting(s)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-200"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-200"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Delete
                         </button>

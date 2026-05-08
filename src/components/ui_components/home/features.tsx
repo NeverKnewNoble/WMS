@@ -105,13 +105,13 @@ export default function Features() {
               Everything you need
               <br className="hidden sm:block" /> to run the yard.
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-white/60">
+            <p className="mt-5 text-lg leading-relaxed text-white/95">
               Built around the day-to-day reality of construction work — fast
               entries, fewer surprises, and reports your PM and QS will
               actually open.
             </p>
           </div>
-          <span className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70">
+          <span className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/85">
             Six core modules
           </span>
         </div>
@@ -137,7 +137,7 @@ export default function Features() {
               <h3 className="relative mt-6 font-mark text-xl tracking-tight text-white">
                 {feature.title}
               </h3>
-              <p className="relative mt-3 text-sm leading-relaxed text-white/60">
+              <p className="relative mt-3 text-sm leading-relaxed text-white/95">
                 {feature.description}
               </p>
             </li>

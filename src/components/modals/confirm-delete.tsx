@@ -61,7 +61,7 @@ export default function ConfirmDeleteDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-white/60 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full p-1.5 text-white/95 transition hover:bg-white/5 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
@@ -71,17 +71,17 @@ export default function ConfirmDeleteDialog({
             <h2 className="text-lg font-semibold tracking-tight text-white">
               {title}
             </h2>
-            <p className="mt-2 text-sm text-white/60">{message}</p>
+            <p className="mt-2 text-sm text-white/95">{message}</p>
           </div>
 
           {details && details.length > 0 && (
             <div className="mx-6 my-4 grid grid-cols-2 gap-3 rounded-xl border border-white/8 bg-white/3 p-4 text-xs">
               {details.map((d, i) => (
                 <div key={i}>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/85">
                     {d.label}
                   </p>
-                  <p className="mt-1 text-white/85">{d.value}</p>
+                  <p className="mt-1 text-white/95">{d.value}</p>
                 </div>
               ))}
             </div>
@@ -91,7 +91,7 @@ export default function ConfirmDeleteDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-5 py-2 text-sm font-medium text-white/75 transition hover:text-white"
+              className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
             >
               Cancel
             </button>
