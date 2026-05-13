@@ -6,12 +6,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { JoshobWordmark } from "@/components/ui_components/wordmark";
+import type { SignupRole } from "@/types/auth";
 
 export default function SignupPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<SignupRole>("storekeeper");
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -29,7 +31,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ fullName, email, password }),
+        body: JSON.stringify({ fullName, email, password, role }),
       });
 
       if (!res.ok) {
@@ -192,6 +194,56 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-brand-orange/50 focus:outline-none focus:ring-2 focus:ring-brand-orange/25"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-[0.15em] text-white/95">
+                Role
+              </label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {([
+                  {
+                    value: "storekeeper" as const,
+                    title: "Storekeeper",
+                    blurb: "Stock in/out, add & edit items. Cannot delete.",
+                  },
+                  {
+                    value: "admin" as const,
+                    title: "Admin",
+                    blurb: "Full access. Can delete any record.",
+                  },
+                ]).map((opt) => {
+                  const selected = role === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setRole(opt.value)}
+                      aria-pressed={selected}
+                      className={[
+                        "rounded-xl border px-4 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-brand-orange/25",
+                        selected
+                          ? "border-brand-orange/60 bg-brand-orange/10 ring-1 ring-inset ring-brand-orange/40"
+                          : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-white">{opt.title}</span>
+                        <span
+                          aria-hidden
+                          className={[
+                            "h-3.5 w-3.5 rounded-full border",
+                            selected
+                              ? "border-brand-orange bg-brand-orange"
+                              : "border-white/30 bg-transparent",
+                          ].join(" ")}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] leading-snug text-white/70">{opt.blurb}</p>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <label className="flex items-start gap-2 text-sm text-white/95">

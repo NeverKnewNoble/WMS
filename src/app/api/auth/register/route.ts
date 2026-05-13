@@ -7,6 +7,7 @@ const schema = z.object({
   fullName: z.string().min(2),
   email:    z.string().email(),
   password: z.string().min(8),
+  role:     z.enum(["admin", "storekeeper"]),
 });
 
 export async function POST(req: Request) {
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { fullName, email, password } = parsed.data;
+  const { fullName, email, password, role: roleCode } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const role = await prisma.role.findUnique({ where: { code: "storekeeper" } });
+  const role = await prisma.role.findUnique({ where: { code: roleCode } });
   if (!role) {
     return NextResponse.json(
       { error: "Roles are not seeded. Run `prisma db seed`." },

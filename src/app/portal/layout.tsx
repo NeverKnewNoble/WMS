@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PortalSidebar from "@/components/ui_components/portal/sidebar";
+import { RoleProvider } from "@/components/providers/role-provider";
 import { getSessionUserOrRedirect, initialsFor } from "@/lib/user";
 
 export const metadata: Metadata = {
@@ -27,7 +28,9 @@ export default async function PortalLayout({
       <main className="relative flex-1 overflow-y-auto">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(226,107,26,0.09),transparent_55%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,122,46,0.04),transparent_55%)]" />
-        <div className="relative">{children}</div>
+        <div className="relative">
+          <RoleProvider role={user.role}>{children}</RoleProvider>
+        </div>
       </main>
     </div>
   );

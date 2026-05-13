@@ -14,10 +14,12 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { deleteSupplier, listSuppliers } from "@/services/suppliers";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useRole } from "@/components/providers/role-provider";
 import { useTableFilters } from "@/lib/table-filters";
 import type { SupplierRow } from "@/types/lookups";
 
 export default function SuppliersPage() {
+  const { canDelete } = useRole();
   const [editing, setEditing] = useState<SupplierRow | null>(null);
   const [deleting, setDeleting] = useState<SupplierRow | null>(null);
 
@@ -124,13 +126,15 @@ export default function SuppliersPage() {
                         >
                           <Pencil className="h-3.5 w-3.5" /> Edit
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleting(s)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-200"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" /> Delete
-                        </button>
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleting(s)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/90 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-200"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

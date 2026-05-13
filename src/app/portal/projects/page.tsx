@@ -15,6 +15,7 @@ import ConfirmDeleteDialog from "@/components/modals/confirm-delete";
 import { listProjects, deleteProject } from "@/services/projects";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useRole } from "@/components/providers/role-provider";
 import { useTableFilters } from "@/lib/table-filters";
 import type { ProjectListRow, Project as LegacyProject } from "@/types/projects";
 
@@ -31,6 +32,7 @@ function toLegacy(p: ProjectListRow): LegacyProject {
 }
 
 export default function ProjectsPage() {
+  const { canDelete } = useRole();
   const [selected, setSelected] = useState<ProjectListRow | null>(null);
   const [editing, setEditing] = useState<ProjectListRow | null>(null);
   const [deleting, setDeleting] = useState<ProjectListRow | null>(null);
@@ -156,10 +158,14 @@ export default function ProjectsPage() {
           setEditing(selected);
           setSelected(null);
         }}
-        onDelete={() => {
-          setDeleting(selected);
-          setSelected(null);
-        }}
+        onDelete={
+          canDelete
+            ? () => {
+                setDeleting(selected);
+                setSelected(null);
+              }
+            : undefined
+        }
       />
 
       <EditProjectDialog

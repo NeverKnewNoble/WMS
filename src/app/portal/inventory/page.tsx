@@ -22,6 +22,7 @@ import {
 } from "@/services/items";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useRole } from "@/components/providers/role-provider";
 import { useTableFilters, distinctOptions } from "@/lib/table-filters";
 import type { ApiItem } from "@/types/items";
 
@@ -40,6 +41,7 @@ const STATUS_LABEL: Record<ApiItem["status"], string> = {
 };
 
 export default function InventoryPage() {
+  const { canDelete } = useRole();
   const [editing, setEditing]   = useState<ApiItem | null>(null);
   const [deleting, setDeleting] = useState<ApiItem | null>(null);
 
@@ -209,14 +211,16 @@ export default function InventoryPage() {
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleting(it)}
-                          aria-label={`Delete ${it.name}`}
-                          className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleting(it)}
+                            aria-label={`Delete ${it.name}`}
+                            className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

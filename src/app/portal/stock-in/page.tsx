@@ -20,10 +20,12 @@ import {
 } from "@/services/stock-movements";
 import { showSuccessToast } from "@/services/toast";
 import { useService } from "@/services/use-service";
+import { useRole } from "@/components/providers/role-provider";
 import { useTableFilters, distinctOptions } from "@/lib/table-filters";
 import type { MovementRow } from "@/types/stock-movements";
 
 export default function StockInPage() {
+  const { canDelete } = useRole();
   const [deleting, setDeleting] = useState<MovementRow | null>(null);
 
   const { data, loading, refetch } = useService(
@@ -201,14 +203,16 @@ export default function StockInPage() {
                       </td>
                       <td className="px-6 py-3.5">
                         <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => setDeleting(m)}
-                            aria-label={`Delete ${m.refNo}`}
-                            className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => setDeleting(m)}
+                              aria-label={`Delete ${m.refNo}`}
+                              className="rounded-md p-1.5 text-white/90 transition hover:bg-white/5 hover:text-rose-300"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

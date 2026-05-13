@@ -346,13 +346,15 @@ export default function ProjectDetailsDialog({
               Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/85">Esc</kbd> to close
             </span>
             <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => onDelete?.(project)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-xs font-medium text-rose-200 transition hover:border-rose-500/40 hover:bg-rose-500/15 hover:text-rose-100"
-              >
-                <Trash2 className="h-3.5 w-3.5" /> Delete project
-              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(project)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-xs font-medium text-rose-200 transition hover:border-rose-500/40 hover:bg-rose-500/15 hover:text-rose-100"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete project
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => onEdit?.(project)}
