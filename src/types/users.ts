@@ -32,3 +32,44 @@ export type NotificationToggle = {
   description: string;
   enabled:     boolean;
 };
+
+// ─── Admin: users management ─────────────────────────────────────────
+
+export type AdminUserRow = {
+  id:       string;
+  email:    string;
+  fullName: string;
+  phone:    string | null;
+  status:   "invited" | "active" | "suspended";
+  role:        { id: string; code: string; label: string };
+  department:  { id: string; code: string; label: string } | null;
+  lastLoginAt: string | null;
+  createdAt:   string;
+};
+
+export type AdminUsersListResponse = {
+  data:   AdminUserRow[];
+  total:  number;
+  limit:  number;
+  offset: number;
+};
+
+export type CreateAdminUserPayload = {
+  fullName:      string;
+  email:         string;
+  password:      string;
+  roleCode:      "admin" | "storekeeper";
+  phone?:        string | null;
+  departmentId?: string | null;
+  status?:       "active" | "invited" | "suspended";
+};
+
+export type UpdateAdminUserPayload = Partial<{
+  fullName:     string;
+  email:        string;
+  phone:        string | null;
+  password:     string;
+  roleCode:     "admin" | "storekeeper";
+  departmentId: string | null;
+  status:       "active" | "invited" | "suspended";
+}>;

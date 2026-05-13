@@ -48,7 +48,7 @@ export default function SuppliersPage() {
   }, [deleting, refetch]);
 
   return (
-    <div className="px-8 py-10 animate-page-in">
+    <div className="px-4 py-8 sm:px-8 sm:py-10 animate-page-in">
       <PageHeader
         eyebrow="Reference"
         title="Suppliers"

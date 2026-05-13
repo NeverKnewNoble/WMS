@@ -47,14 +47,14 @@ export default function SettingsTabs({
   const [toggles, setToggles] = useState(initialToggles);
 
   return (
-    <div className="px-8 py-10 animate-page-in">
+    <div className="px-4 py-8 sm:px-8 sm:py-10 animate-page-in">
       <PageHeader
         eyebrow="Account"
         title="Settings"
         subtitle="Manage your profile and how the system reaches you."
       />
 
-      <div className="mt-8 inline-flex gap-1 rounded-full border border-white/10 bg-white/3 p-1">
+      <div className="mt-6 inline-flex max-w-full flex-wrap gap-1 rounded-2xl border border-white/10 bg-white/3 p-1 sm:mt-8 sm:rounded-full sm:flex-nowrap">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -64,7 +64,7 @@ export default function SettingsTabs({
               type="button"
               onClick={() => setTab(t.key)}
               className={clsx(
-                "inline-flex items-center gap-2 rounded-full px-5 py-1.5 text-xs font-medium transition",
+                "inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition sm:px-5",
                 active
                   ? "bg-white text-zinc-900"
                   : "text-white/95 hover:text-white",
@@ -98,7 +98,7 @@ export default function SettingsTabs({
 
 function ProfileTab({ user }: { user: SettingsUser }) {
   return (
-    <Surface className="p-6 sm:p-8">
+    <Surface className="p-5 sm:p-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-brand-orange/25 to-brand-orange/5 text-xl font-semibold text-white ring-1 ring-inset ring-white/10">
@@ -201,7 +201,7 @@ function ProfileTab({ user }: { user: SettingsUser }) {
           />
         </div>
 
-        <div className="-mx-6 mt-2 flex items-center justify-end gap-3 border-t border-white/8 px-6 pt-5 sm:col-span-2 sm:-mx-8 sm:px-8">
+        <div className="-mx-5 mt-2 flex flex-col-reverse items-stretch justify-end gap-3 border-t border-white/8 px-5 pt-5 sm:col-span-2 sm:-mx-8 sm:flex-row sm:items-center sm:px-8">
           <button
             type="button"
             className="rounded-full px-5 py-2 text-sm font-medium text-white/85 transition hover:text-white"
@@ -229,7 +229,7 @@ function NotificationsTab({
   onToggle: (index: number) => void;
 }) {
   return (
-    <Surface className="p-6 sm:p-8">
+    <Surface className="p-5 sm:p-8">
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-orange/10 ring-1 ring-inset ring-brand-orange/30">
           <Bell className="h-5 w-5 text-brand-orange-bright" />
@@ -248,7 +248,7 @@ function NotificationsTab({
         {toggles.map((t, i) => (
           <li
             key={t.key}
-            className="flex items-center justify-between gap-6 py-4"
+            className="flex items-center justify-between gap-4 py-4 sm:gap-6"
           >
             <div>
               <p className="text-sm font-medium text-white">{t.label}</p>

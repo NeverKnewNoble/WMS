@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -19,6 +20,9 @@ import {
   Truck,
   Building,
   Warehouse,
+  Users,
+  Menu,
+  X,
 } from "lucide-react";
 
 interface NavItem {
@@ -28,62 +32,102 @@ interface NavItem {
   badge?: string;
 }
 
-const SECTIONS: { heading: string; items: NavItem[] }[] = [
-  {
-    heading: "Overview",
-    items: [{ label: "Dashboard", href: "/portal", icon: LayoutDashboard }],
-  },
-  {
-    heading: "Inventory",
-    items: [
-      { label: "Item Registry", href: "/portal/inventory", icon: Package },
-      { label: "Stock In", href: "/portal/stock-in", icon: PackagePlus },
-      { label: "Stock Out", href: "/portal/stock-out", icon: PackageMinus },
-      {
-        label: "Reorder Alerts",
-        href: "/portal/reorder-alerts",
-        icon: Bell,
-        badge: "4",
-      },
-    ],
-  },
-  {
-    heading: "Operations",
-    items: [
-      { label: "Projects", href: "/portal/projects", icon: FolderKanban },
-      { label: "Maintenance", href: "/portal/maintenance", icon: Wrench },
-    ],
-  },
-  {
-    heading: "Reference",
-    items: [
-      { label: "Suppliers", href: "/portal/suppliers", icon: Truck },
-      { label: "Departments", href: "/portal/departments", icon: Building },
-      { label: "Storage Locations", href: "/portal/storage-locations", icon: Warehouse },
-    ],
-  },
-  {
-    heading: "Insights",
-    items: [{ label: "Reports", href: "/portal/reports", icon: BarChart3 }],
-  },
-];
+interface NavSection {
+  heading: string;
+  items: NavItem[];
+  adminOnly?: boolean;
+}
+
+function buildSections(reorderAlertCount: number): NavSection[] {
+  return [
+    {
+      heading: "Overview",
+      items: [{ label: "Dashboard", href: "/portal", icon: LayoutDashboard }],
+    },
+    {
+      heading: "Inventory",
+      items: [
+        { label: "Item Registry", href: "/portal/inventory", icon: Package },
+        { label: "Stock In", href: "/portal/stock-in", icon: PackagePlus },
+        { label: "Stock Out", href: "/portal/stock-out", icon: PackageMinus },
+        {
+          label: "Reorder Alerts",
+          href: "/portal/reorder-alerts",
+          icon: Bell,
+          badge: reorderAlertCount > 0 ? String(reorderAlertCount) : undefined,
+        },
+      ],
+    },
+    {
+      heading: "Operations",
+      items: [
+        { label: "Projects", href: "/portal/projects", icon: FolderKanban },
+        { label: "Maintenance", href: "/portal/maintenance", icon: Wrench },
+      ],
+    },
+    {
+      heading: "Reference",
+      items: [
+        { label: "Suppliers", href: "/portal/suppliers", icon: Truck },
+        { label: "Departments", href: "/portal/departments", icon: Building },
+        { label: "Storage Locations", href: "/portal/storage-locations", icon: Warehouse },
+      ],
+    },
+    {
+      heading: "Insights",
+      items: [{ label: "Reports", href: "/portal/reports", icon: BarChart3 }],
+    },
+    {
+      heading: "Administration",
+      adminOnly: true,
+      items: [{ label: "Users", href: "/portal/users", icon: Users }],
+    },
+  ];
+}
 
 export type SidebarUser = {
   name: string;
   email: string;
   initials: string;
+  role: string;
 };
 
-export default function PortalSidebar({ user }: { user: SidebarUser }) {
+export default function PortalSidebar({
+  user,
+  reorderAlertCount = 0,
+}: {
+  user: SidebarUser;
+  reorderAlertCount?: number;
+}) {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const sections = buildSections(reorderAlertCount);
 
   const isActive = (href: string) =>
     href === "/portal" ? pathname === "/portal" : pathname.startsWith(href);
 
-  return (
-    <aside className="relative flex h-screen w-72 shrink-0 flex-col border-r border-white/6 bg-zinc-950 animate-sidebar-in">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(226,107,26,0.10),transparent_55%)]" />
+  // Close drawer whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
+  // Lock body scroll while drawer is open on mobile.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileOpen(false);
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const isAdmin = user.role === "admin";
+  const visibleSections = sections.filter((s) => !s.adminOnly || isAdmin);
+
+  const navBody = (
+    <>
       <div className="relative flex flex-col gap-3 px-6 pb-6 pt-7">
         <Link
           href="/portal"
@@ -98,7 +142,7 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
       </div>
 
       <nav className="relative flex-1 overflow-y-auto px-3 pb-6">
-        {SECTIONS.map((section) => (
+        {visibleSections.map((section) => (
           <div key={section.heading} className="mb-6">
             <p className="px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/85">
               {section.heading}
@@ -172,6 +216,56 @@ export default function PortalSidebar({ user }: { user: SidebarUser }) {
           </button>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile topbar (visible < lg) */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/6 bg-zinc-950/95 px-4 py-3 backdrop-blur lg:hidden">
+        <Link href="/portal" aria-label="Joshob Construction Co. Ltd." className="inline-flex">
+          <JoshobWordmark size="sm" />
+        </Link>
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={mobileOpen}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/90 transition hover:bg-white/10 hover:text-white"
+        >
+          <Menu className="h-4.5 w-4.5" />
+        </button>
+      </header>
+
+      {/* Desktop sidebar (lg+) */}
+      <aside className="relative hidden h-screen w-72 shrink-0 flex-col border-r border-white/6 bg-zinc-950 animate-sidebar-in lg:flex">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(226,107,26,0.10),transparent_55%)]" />
+        {navBody}
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setMobileOpen(false)}
+            className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm"
+          />
+          <aside className="relative ml-auto flex h-full w-[min(20rem,85vw)] flex-col border-l border-white/6 bg-zinc-950 shadow-2xl animate-sidebar-in">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(226,107,26,0.10),transparent_55%)]" />
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/90 transition hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {navBody}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

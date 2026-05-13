@@ -27,6 +27,14 @@ export async function requireUser() {
   };
 }
 
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (user.role !== "admin") {
+    throw new HttpError(403, "Admins only");
+  }
+  return user;
+}
+
 // ─── Serialization ──────────────────────────────────────────────────
 
 /**
