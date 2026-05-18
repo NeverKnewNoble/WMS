@@ -87,13 +87,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     authorized({ auth: session, request }) {
-      const onPortal = request.nextUrl.pathname.startsWith("/portal");
-      const onAuth   = request.nextUrl.pathname.startsWith("/auth");
+      const path = request.nextUrl.pathname;
+      const onPortal = path.startsWith("/portal");
+      const onAuth   = path.startsWith("/auth");
 
       if (onPortal && !session) return false; // forces redirect to /auth/login
       if (onAuth && session) {
         return Response.redirect(new URL("/portal", request.nextUrl));
       }
+
+      // Non-admins are blocked from admin-only portal areas.
+      if (onPortal && session && session.user.role !== "admin") {
+        const adminOnlyPrefixes = [
+          "/portal/projects",
+          "/portal/maintenance",
+          "/portal/suppliers",
+          "/portal/departments",
+          "/portal/storage-locations",
+          "/portal/reports",
+          "/portal/users",
+        ];
+        if (adminOnlyPrefixes.some((p) => path === p || path.startsWith(`${p}/`))) {
+          return Response.redirect(new URL("/portal", request.nextUrl));
+        }
+      }
+
       return true;
     },
   },

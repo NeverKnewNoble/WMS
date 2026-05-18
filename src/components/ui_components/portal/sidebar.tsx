@@ -60,6 +60,7 @@ function buildSections(reorderAlertCount: number): NavSection[] {
     },
     {
       heading: "Operations",
+      adminOnly: true,
       items: [
         { label: "Projects", href: "/portal/projects", icon: FolderKanban },
         { label: "Maintenance", href: "/portal/maintenance", icon: Wrench },
@@ -67,6 +68,7 @@ function buildSections(reorderAlertCount: number): NavSection[] {
     },
     {
       heading: "Reference",
+      adminOnly: true,
       items: [
         { label: "Suppliers", href: "/portal/suppliers", icon: Truck },
         { label: "Departments", href: "/portal/departments", icon: Building },
@@ -75,6 +77,7 @@ function buildSections(reorderAlertCount: number): NavSection[] {
     },
     {
       heading: "Insights",
+      adminOnly: true,
       items: [{ label: "Reports", href: "/portal/reports", icon: BarChart3 }],
     },
     {
