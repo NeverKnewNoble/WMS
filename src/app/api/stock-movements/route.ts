@@ -153,6 +153,12 @@ export const POST = withApi(async (req) => {
   const me = await requireUser();
   const body = await parseJson(req, createSchema);
 
+  // Maintenance movements are admin-only; storekeepers can only create
+  // operations-kind stock-in/out entries.
+  if (body.kind === "maintenance" && me.role !== "admin") {
+    return jsonError("Admins only", 403);
+  }
+
   // Resolve all FK lookups up-front.
   const [supplier, project, department, site, manufacturer, storage] = await Promise.all([
     body.supplierName        ? prisma.supplier.findUnique({ where: { name: body.supplierName } })           : null,

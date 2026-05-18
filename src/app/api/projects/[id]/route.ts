@@ -5,6 +5,7 @@ import {
   jsonOk,
   parseBigIntId,
   parseJson,
+  requireAdmin,
   requireUser,
   withApi,
 } from "@/lib/api";
@@ -97,7 +98,7 @@ const patchSchema = z.object({
 });
 
 export const PATCH = withApi(async (req, ctx) => {
-  await requireUser();
+  await requireAdmin();
   const { id: idStr } = await ctx.params;
   const id = parseBigIntId(idStr);
   const body = await parseJson(req, patchSchema);
@@ -135,7 +136,7 @@ export const PATCH = withApi(async (req, ctx) => {
 });
 
 export const DELETE = withApi(async (_req, ctx) => {
-  await requireUser();
+  await requireAdmin();
   const { id: idStr } = await ctx.params;
   const id = parseBigIntId(idStr);
 

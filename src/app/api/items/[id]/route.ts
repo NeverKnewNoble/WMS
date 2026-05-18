@@ -5,6 +5,7 @@ import {
   jsonOk,
   parseBigIntId,
   parseJson,
+  requireAdmin,
   requireUser,
   withApi,
 } from "@/lib/api";
@@ -89,7 +90,7 @@ export const PATCH = withApi(async (req, ctx) => {
 // Description: Delete an item
 
 export const DELETE = withApi(async (_req, ctx) => {
-  await requireUser();
+  await requireAdmin();
   const { id: idStr } = await ctx.params;
   const id = parseBigIntId(idStr);
 

@@ -3,6 +3,7 @@ import {
   jsonError,
   jsonOk,
   parseBigIntId,
+  requireAdmin,
   requireUser,
   withApi,
 } from "@/lib/api";
@@ -34,7 +35,7 @@ export const GET = withApi(async (_req, ctx) => {
 });
 
 export const DELETE = withApi(async (_req, ctx) => {
-  await requireUser();
+  await requireAdmin();
   const { id: idStr } = await ctx.params;
   const id = parseBigIntId(idStr);
 

@@ -6,6 +6,7 @@ import {
   jsonOk,
   parseJson,
   readPagination,
+  requireAdmin,
   requireUser,
   withApi,
 } from "@/lib/api";
@@ -123,7 +124,7 @@ const createSchema = z.object({
 
 
 export const POST = withApi(async (req) => {
-  await requireUser();
+  await requireAdmin();
   const body = await parseJson(req, createSchema);
 
   const region = body.regionCode

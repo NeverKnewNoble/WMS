@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, requireUser, withApi } from "@/lib/api";
+import { jsonError, jsonOk, requireAdmin, withApi } from "@/lib/api";
 
 const SLUGS = [
   "stock-on-hand",
@@ -11,7 +11,7 @@ const SLUGS = [
 type Slug = (typeof SLUGS)[number];
 
 export const GET = withApi(async (req, ctx) => {
-  await requireUser();
+  await requireAdmin();
   const { slug } = await ctx.params;
 
   if (!SLUGS.includes(slug as Slug)) {
